@@ -16,7 +16,7 @@ param(
     # Build center Redis credentials (REDISCLI_AUTH, HSC_REDIS_USERNAME). Optional.
     [string]$RedisPassword,
     [string]$RedisUsername,
-    # Ask again for the provider, API key and Redis credentials.
+    # Ask again for the provider, API key and default model.
     [switch]$Reconfigure,
     # Never prompt (CI, scripted installs). Missing required values fail with a message instead.
     [switch]$NonInteractive,
@@ -228,14 +228,12 @@ if ($PSBoundParameters.ContainsKey('ApiKey')) {
     $entered = Read-Secret "API key for $url (hidden; Enter keeps the current value or uses no key)"
     if ($entered) { $key = $entered; $secrets[$keyEnv] = $entered }
 }
-foreach ($pair in @(@('REDISCLI_AUTH', $RedisPassword, 'RedisPassword', 'Build center Redis password (hidden; Enter to skip)', $true),
-                    @('HSC_REDIS_USERNAME', $RedisUsername, 'RedisUsername', 'Build center Redis ACL user name (Enter to skip)', $false))) {
-    $name, $value, $parameter, $prompt, $hidden = $pair
-    if ($PSBoundParameters.ContainsKey($parameter)) {
-        if ($value) { $secrets[$name] = $value }
-    } elseif ($interactive -and ($Reconfigure -or -not (Test-Path -LiteralPath $modelsPath)) -and -not (Get-SavedValue $name)) {
-        $value = if ($hidden) { Read-Secret $prompt } else { Read-Host -Prompt $prompt }
-        if ($value) { $secrets[$name] = $value }
+# Redis authentication is optional and never prompted for; accept explicit options only.
+foreach ($pair in @(@('REDISCLI_AUTH', $RedisPassword, 'RedisPassword'),
+                    @('HSC_REDIS_USERNAME', $RedisUsername, 'RedisUsername'))) {
+    $name, $value, $parameter = $pair
+    if ($PSBoundParameters.ContainsKey($parameter) -and $value) {
+        $secrets[$name] = $value
     }
 }
 
