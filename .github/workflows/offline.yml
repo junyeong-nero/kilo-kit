@@ -1,0 +1,58 @@
+name: Offline Windows bundle
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: offline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Assemble complete ZIP
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'dev' }}
+        run: |
+          python .github/tools/build.py
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      # Minimal check only: the relocated ZIP is complete and kilo.exe starts.
+      - name: Check relocated ZIP
+        shell: powershell
+        run: |
+          $parent = Join-Path $env:RUNNER_TEMP 'offline space 한글'
+          Expand-Archive dist/kilo-kit-win-x64.zip -DestinationPath $parent
+          $bundle = Join-Path $parent 'kilo-kit'
+          & "$bundle\setup.ps1" -Check
+          & "$bundle\bin\kilo\kilo.exe" --version
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Publish to GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" dist/kilo-kit-win-x64.zip dist/kilo-kit-win-x64.zip.sha256 dist/manifest-win-x64.json --verify-tag --title "$env:GITHUB_REF_NAME" --generate-notes
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        continue-on-error: true
+        with:
+          name: kilo-kit-win-x64
+          path: |
+            dist/kilo-kit-win-x64.zip
+            dist/kilo-kit-win-x64.zip.sha256
+          compression-level: 0
+          retention-days: 7

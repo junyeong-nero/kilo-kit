@@ -1,0 +1,10 @@
+{
+  "provider": {
+    "id": "corp",
+    "name": "HSC-AI",
+    "baseUrl": "http://<사내API주소>/v1",
+    "apiKeyEnv": "CORP_LLM_API_KEY"
+  },
+  "default": null,
+  "models": []
+}

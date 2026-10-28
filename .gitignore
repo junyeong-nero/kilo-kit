@@ -1,0 +1,21 @@
+# 사내 API 주소·모델이 들어가는 실제 설정 — setup.ps1이 만들거나 config/models.example.json을 복사해서 채운다
+/config/models.json
+
+# 빌드센터 실제 매핑 — .example.json만 커밋·배포한다
+/config/redis/server_IP_mappings.json
+/config/redis/owners.json
+/config/redis/cache/
+
+# Edge MCP 자동 출력(업무 정보가 들어갈 수 있음)
+/config/playwright-mcp/
+
+# GitHub Actions가 준비하는 실행 파일·런타임·패키지
+/bin/
+/runtime/
+/mcp/edge/node_modules/
+/.cache/
+/dist/
+__pycache__/
+*.pyc
+*.log
+/config/*.bak

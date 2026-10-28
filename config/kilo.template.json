@@ -1,0 +1,60 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "autoupdate": false,
+  "share": "disabled",
+  "formatter": false,
+  "lsp": false,
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "Get-ChildItem *": "allow",
+      "Get-Content *": "allow",
+      "Get-Item *": "allow",
+      "Get-Location *": "allow",
+      "Get-FileHash *": "allow",
+      "Test-Path *": "allow",
+      "Resolve-Path *": "allow",
+      "Select-String *": "allow",
+      "Select-Object *": "allow",
+      "Where-Object *": "allow",
+      "Sort-Object *": "allow",
+      "Measure-Object *": "allow",
+      "Format-Table *": "allow",
+      "Format-List *": "allow",
+      "ls *": "allow",
+      "dir *": "allow",
+      "cat *": "allow",
+      "type *": "allow",
+      "pwd *": "allow",
+      "git status *": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git show *": "allow",
+      "git blame *": "allow",
+      "svn status *": "allow",
+      "svn diff *": "allow",
+      "svn log *": "allow",
+      "svn info *": "allow",
+      "rg *": "allow",
+      "fd *": "allow",
+      "*>*": "ask"
+    },
+    "build_center_*": "allow"
+  },
+  "mcp": {
+    "build_center": {
+      "type": "local",
+      "command": [
+        "{bundle}\\runtime\\python\\python.exe",
+        "-I",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "main"
+      ],
+      "enabled": true,
+      "timeout": 120000
+    }
+  }
+}
