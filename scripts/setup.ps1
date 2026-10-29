@@ -182,6 +182,15 @@ function Get-ContextWindow($Item) {
     }
     return $null
 }
+function Get-ImageInput($Saved, [string]$ModelId) {
+    # Explicit per-model settings win, including false. Old registries have no imageInput field.
+    if ($Saved -and $Saved.PSObject.Properties['imageInput']) {
+        if ($Saved.imageInput -isnot [bool]) { throw "imageInput must be true or false for model '$ModelId'." }
+        return $Saved.imageInput
+    }
+    # Recognize the known vision model, including provider prefixes and quantization suffixes.
+    return $ModelId -match '(?i)(^|/)qwen3[.]5-397b($|[-_])'
+}
 function Get-ApiModels([string]$Url, [string]$Key) {
     $headers = @{}
     if ($Key) { $headers['Authorization'] = "Bearer $Key" }
@@ -261,12 +270,14 @@ if ($found) {
         $context = if ($saved -and ($saved.contextWindow -as [long]) -gt 0) { [long]$saved.contextWindow } elseif ($item.contextWindow) { [long]$item.contextWindow } else { $null }
         $output = if ($saved -and ($saved.maxTokens -as [long]) -gt 0) { [long]$saved.maxTokens } else { $null }
         $name = if ($saved -and $saved.name) { [string]$saved.name } else { $item.id }
-        [void]$models.Add([pscustomobject]@{ id = $item.id; name = $name; contextWindow = $context; maxTokens = $output })
+        [void]$models.Add([pscustomobject]@{ id = $item.id; name = $name; contextWindow = $context; maxTokens = $output
+            imageInput = (Get-ImageInput $saved $item.id) })
     }
 } else {
     foreach ($entry in $known.Values) {
         [void]$models.Add([pscustomobject]@{ id = [string]$entry.id; name = $(if ($entry.name) { [string]$entry.name } else { [string]$entry.id })
-            contextWindow = ($entry.contextWindow -as [long]); maxTokens = ($entry.maxTokens -as [long]) })
+            contextWindow = ($entry.contextWindow -as [long]); maxTokens = ($entry.maxTokens -as [long])
+            imageInput = (Get-ImageInput $entry $entry.id) })
     }
 }
 foreach ($entry in $models) {
@@ -297,7 +308,7 @@ if ($Model) {
 $completed = [ordered]@{
     provider = [ordered]@{ id = $providerId; name = $providerName; baseUrl = $url; apiKeyEnv = $keyEnv }
     default  = $default
-    models   = @($models | ForEach-Object { [ordered]@{ id = $_.id; name = $_.name; contextWindow = $_.contextWindow; maxTokens = $_.maxTokens } })
+    models   = @($models | ForEach-Object { [ordered]@{ id = $_.id; name = $_.name; contextWindow = $_.contextWindow; maxTokens = $_.maxTokens; imageInput = $_.imageInput } })
 }
 Install-File $modelsPath ((ConvertTo-Json -InputObject $completed -Depth 8) + "`n")
 Write-Host "Provider $providerId ($url): $($ids.Count) model(s), default $default"
@@ -316,7 +327,13 @@ foreach ($server in $template.mcp.PSObject.Properties) {
 }
 $kiloModels = [ordered]@{}
 foreach ($entry in $models) {
-    $kiloModels[$entry.id] = [ordered]@{ name = $entry.name; tool_call = $true; limit = [ordered]@{ context = $entry.contextWindow; output = $entry.maxTokens } }
+    $inputModalities = @('text')
+    if ($entry.imageInput) { $inputModalities += 'image' }
+    $kiloModels[$entry.id] = [ordered]@{
+        name = $entry.name; tool_call = $true; attachment = [bool]$entry.imageInput
+        modalities = [ordered]@{ input = $inputModalities; output = @('text') }
+        limit = [ordered]@{ context = $entry.contextWindow; output = $entry.maxTokens }
+    }
 }
 $kiloConfig['enabled_providers'] = @($providerId)
 $kiloConfig['model'] = "$providerId/$default"

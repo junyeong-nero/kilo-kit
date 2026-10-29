@@ -66,7 +66,7 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 
 | 위치 | 용도 |
 |---|---|
-| `<배포 폴더>\config\models.json` | 프로바이더 주소, API 키를 저장한 환경 변수 이름, 모델 목록과 기본 모델을 담습니다. 셋업이 만들고 갱신하며, 직접 수정한 `contextWindow`·`maxTokens`·`name`은 다음 실행에서도 유지합니다. |
+| `<배포 폴더>\config\models.json` | 프로바이더 주소, API 키를 저장한 환경 변수 이름, 모델 목록과 기본 모델을 담습니다. 셋업이 만들고 갱신하며, 직접 수정한 `contextWindow`·`maxTokens`·`name`·`imageInput`은 다음 실행에서도 유지합니다. |
 | `%USERPROFILE%\.config\kilo\kilo.json` | 셋업이 실행할 때마다 다시 만드는 Kilo 설정입니다. 개인 설정은 이 파일 대신 `kilo.jsonc`에 작성하세요. |
 | `%USERPROFILE%\.config\kilo\kilo.jsonc` | 개인 설정을 넣는 파일입니다. `kilo.json`보다 나중에 읽혀 우선 적용되며, 셋업이 덮어쓰지 않습니다. |
 | `%USERPROFILE%\.config\kilo\AGENTS.md` | 모든 프로젝트에 적용되는 도구 사용 규칙입니다. 배포본의 `config\AGENTS.md`를 복사한 파일입니다. |
@@ -77,6 +77,18 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 **API 키는 `kilo.json`에 저장하지 않습니다.** 기본적으로 시스템 환경 변수 `CORP_LLM_API_KEY`에 저장하고 여기서 읽습니다. 시스템 환경 변수는 이 PC의 다른 사용자도 읽을 수 있다는 점에 유의하세요.
 
 ## 사용하면서 알아 둘 점
+
+### 이미지 붙여넣기
+
+Qwen3.5-397B는 셋업에서 이미지 입력을 지원하는 모델로 자동 등록합니다. 모델 ID가 `Qwen3.5-397B`이거나 `Qwen/Qwen3.5-397B-A17B`처럼 제공자 이름이나 변형 접미사가 붙은 경우도 인식합니다. 다른 이름으로 배포된 모델은 `config\models.json`의 해당 모델 항목에 `"imageInput": true`를 추가하고 셋업을 다시 실행하세요. 이미지 입력을 끄려면 `false`로 지정하면 됩니다. 직접 지정한 값은 자동 인식보다 우선합니다.
+
+셋업은 이 값을 Kilo의 `attachment`와 `modalities` 설정에 반영합니다. 기존 버전에서 업그레이드했다면 새 배포본의 `setup.ps1`을 실행한 뒤 Kilo를 다시 시작하세요.
+
+1. `Win+Shift+S`로 화면을 캡처합니다.
+2. Kilo 입력창에서 **`Ctrl+V`**를 누릅니다.
+3. `[Image 1]`이 표시되면 질문을 입력하고 전송합니다.
+
+이미지가 첨부되지 않는다면 터미널의 단축키 설정이나 Windows 클립보드 접근을 확인하세요. 첨부는 되지만 전송이 실패한다면 모델 설정과 사내 API의 이미지 요청 지원 여부를 확인해야 합니다. 모델 자체의 이미지 지원과 별개로, API 서버도 이미지 요청을 처리하도록 구성되어 있어야 합니다.
 
 ### 명령 실행 승인
 
