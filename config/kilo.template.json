@@ -39,7 +39,23 @@
       "fd *": "allow",
       "*>*": "ask"
     },
-    "build_center_*": "allow"
+    "build_center_*": "allow",
+    "word_*": "ask",
+    "word_word_screen_capture": "allow",
+    "word_word_live_get_text": "allow",
+    "word_word_live_take_snapshot": "allow",
+    "word_word_live_get_diff": "allow",
+    "word_word_live_snapshot_status": "allow",
+    "word_word_live_get_paragraph_format": "allow",
+    "word_word_live_get_info": "allow",
+    "word_word_live_list_open": "allow",
+    "word_word_live_find_text": "allow",
+    "word_word_live_get_comments": "allow",
+    "word_word_live_list_revisions": "allow",
+    "word_word_live_get_page_text": "allow",
+    "word_word_live_get_undo_history": "allow",
+    "word_word_live_list_cross_reference_items": "allow",
+    "word_word_live_diagnose_layout": "allow"
   },
   "mcp": {
     "build_center": {
@@ -52,6 +68,20 @@
         "-B",
         "-m",
         "main"
+      ],
+      "enabled": true,
+      "timeout": 120000
+    },
+    "word": {
+      "type": "local",
+      "command": [
+        "{bundle}\\runtime\\python\\python.exe",
+        "-I",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "word_mcp"
       ],
       "enabled": true,
       "timeout": 120000

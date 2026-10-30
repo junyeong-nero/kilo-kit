@@ -1,0 +1,3 @@
+# Installed by CI only into runtime/word-mcp. Target PCs never run pip.
+# Separate from the build center lock: word-mcp-live needs mcp 2 (via fastmcp 4), the build center uses mcp 1.
+word-mcp-live==1.6.21

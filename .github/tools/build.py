@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build the Windows x64 offline ZIP on an internet-connected Windows runner (GitHub Actions only).
 
-Downloads are pinned by version and hash in config/offline-artifacts.lock.json and config/redis/requirements.lock.
+Downloads are pinned by version and hash in config/offline-artifacts.lock.json, config/redis/requirements.lock
+and config/word/requirements.lock.
 The target PC never downloads, installs or builds anything.
   python .github/tools/build.py   # prepare bin/ and runtime/, then dist/kilo-kit-win-x64.zip
 """
@@ -94,30 +95,48 @@ def prepare_artifacts(lock):
         require_pe(ROOT / relative)
 
 
-def prepare_python():
-    """Install hash-locked Windows wheels into the embedded Python here, never on the offline target."""
-    runtime = ROOT / "runtime/python"
-    packages = runtime / "Lib/site-packages"
+def install_wheels(lock, packages):
     wheels = CACHE / "python-wheels"
     wheels.mkdir(parents=True, exist_ok=True)
-    lock = ROOT / "config/redis/requirements.lock"
     subprocess.run([sys.executable, "-m", "pip", "download", "--require-hashes", "--only-binary=:all:",
                     "--platform", "win_amd64", "--python-version", "3.13", "--dest", str(wheels), "-r", str(lock)], check=True)
+    if packages.exists():
+        shutil.rmtree(packages)
     subprocess.run([sys.executable, "-m", "pip", "install", "--require-hashes", "--no-index", "--find-links", str(wheels),
                     "--only-binary=:all:", "--no-compile", "--no-warn-script-location",
                     "--platform", "win_amd64", "--python-version", "3.13",
                     "--target", str(packages), "-r", str(lock)], check=True)
-    # Embedded Python ignores PYTHONPATH; the server module and packages are listed explicitly.
-    (runtime / "python313._pth").write_text("python313.zip\n.\nLib/site-packages\n../../mcp/build-center\nimport site\n", encoding="utf-8")
+
+
+def prepare_python():
+    """Install hash-locked Windows wheels for the embedded Python here, never on the offline target."""
+    runtime = ROOT / "runtime/python"
+    packages = runtime / "Lib/site-packages"
+    lock = ROOT / "config/redis/requirements.lock"
+    install_wheels(lock, packages)
+    # word-mcp-live needs mcp 2 and the build center mcp 1: separate folder, selected by mcp/word/word_mcp.py.
+    word_packages = ROOT / "runtime/word-mcp"
+    word_lock = ROOT / "config/word/requirements.lock"
+    install_wheels(word_lock, word_packages)
+    # Embedded Python ignores PYTHONPATH; the server modules and packages are listed explicitly.
+    (runtime / "python313._pth").write_text("python313.zip\n.\nLib/site-packages\n../../mcp/build-center\n../../mcp/word\nimport site\n",
+                                            encoding="utf-8")
     notices = ROOT / "third_party/python"
     shutil.copy2(runtime / "LICENSE.txt", notices / "PYTHON-LICENSE.txt")
     shutil.copy2(lock, notices / "requirements.lock")
+    shutil.copy2(word_lock, notices / "word-requirements.lock")
     (notices / "PACKAGES.json").write_text(json.dumps([
-        {"metadata": str(p.relative_to(runtime)).replace(os.sep, "/"), "sha256": digest(p)}
-        for p in sorted(packages.glob("*.dist-info/METADATA"))
+        {"metadata": str(p.relative_to(ROOT / "runtime")).replace(os.sep, "/"), "sha256": digest(p)}
+        for p in sorted(packages.glob("*.dist-info/METADATA")) + sorted(word_packages.glob("*.dist-info/METADATA"))
     ], indent=2) + "\n", encoding="utf-8")
     subprocess.run([str(runtime / "python.exe"), "-I", "-X", "utf8", "-B", "-c",
                     "import redis, mcp, pydantic_core; from main import create_server; from zoneinfo import ZoneInfo; ZoneInfo('Asia/Seoul')"],
+                   check=True, cwd=tempfile.gettempdir())
+    # The Word server must see mcp 2 and a working pywin32; importing main registers its tools without starting.
+    subprocess.run([str(runtime / "python.exe"), "-I", "-X", "utf8", "-B", "-c",
+                    "import word_mcp; word_mcp.use_word_packages(); import mcp, importlib.metadata as m; "
+                    "assert m.version('mcp').startswith('2.'), m.version('mcp'); "
+                    "import pythoncom, win32com.client, docx, fastmcp, word_document_server.main"],
                    check=True, cwd=tempfile.gettempdir())
 
 
@@ -133,7 +152,7 @@ def package(lock, output):
     with tempfile.TemporaryDirectory(prefix="package-", dir=CACHE) as tmp:
         stage = Path(tmp) / NAME
         stage.mkdir()
-        for relative in ("bin", "runtime/python", "mcp", "config", "scripts", "docs", "third_party"):
+        for relative in ("bin", "runtime/python", "runtime/word-mcp", "mcp", "config", "scripts", "docs", "third_party"):
             shutil.copytree(ROOT / relative, stage / relative, ignore=ignore)
         for relative in ("setup.ps1", "README.md"):
             shutil.copy2(ROOT / relative, stage / relative)

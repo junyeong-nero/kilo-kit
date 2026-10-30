@@ -6,6 +6,7 @@
 
 - **Kilo CLI 7.8.18** — `bin\kilo\`에 실행 파일과 실행에 필요한 리소스가 들어 있습니다.
 - **빌드센터 MCP** — 빌드센터 Redis에서 프로젝트·모듈·담당자별 빌드 및 시험 결과와 로그를 조회합니다. 전용 Python 런타임도 함께 제공합니다. 자세한 내용은 [빌드센터 MCP 안내](mcp/build-center/README.md)를 참고하세요.
+- **Word MCP** — [word-mcp-live](https://github.com/ykarapazar/word-mcp-live) 1.6.21. Word에서 열어 둔 문서만 화면에서 바로 읽고 편집합니다(Word 필요). 닫힌 `.docx` 파일을 직접 고치는 도구는 끕니다. 자세한 내용은 [Word MCP 안내](mcp/word/README.md)를 참고하세요.
 - **rg(ripgrep) 15.2.0, fd 10.5.0** — 내용 검색과 파일 찾기에 사용하는 도구로, `bin\`에 들어 있습니다.
 
 확장, Edge MCP, 언어 서버(LSP)는 포함하지 않습니다.
@@ -37,7 +38,7 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하도록 등록합니다
 | 항목 | 설정 내용 |
 |---|---|
 | 모델 프로바이더 | 입력한 주소의 `/models`에서 모델 목록과 컨텍스트 크기를 읽어 `config\models.json`을 만듭니다. 모델이 여러 개면 기본 모델을 선택할 수 있습니다. |
-| Kilo 설정 | `%USERPROFILE%\.config\kilo\`에 `kilo.json`과 도구 사용 규칙인 `AGENTS.md`를 설치합니다. `kilo.json`에는 프로바이더·모델·빌드센터 MCP·권한·오프라인 설정이 들어갑니다. 기존 파일은 `.bak`으로 백업하고, 개인 설정용 `kilo.jsonc`는 덮어쓰지 않습니다. |
+| Kilo 설정 | `%USERPROFILE%\.config\kilo\`에 `kilo.json`과 도구 사용 규칙인 `AGENTS.md`를 설치합니다. `kilo.json`에는 프로바이더·모델·빌드센터 MCP·Word MCP·권한·오프라인 설정이 들어갑니다. 기존 파일은 `.bak`으로 백업하고, 개인 설정용 `kilo.jsonc`는 덮어쓰지 않습니다. |
 | ripgrep | Kilo가 인터넷에서 다운로드하지 않도록, 동봉된 rg를 `%USERPROFILE%\.cache\kilo\bin\rg.exe`에도 복사합니다. |
 | 시스템 PATH | 어느 폴더에서든 `kilo`, `rg`, `fd`를 실행할 수 있도록 `bin\kilo`와 `bin`을 등록합니다. |
 | 시스템 변수 | API 키(`CORP_LLM_API_KEY`), 실행 옵션으로 지정한 경우에만 빌드센터 Redis 인증 정보(`REDISCLI_AUTH`, `HSC_REDIS_USERNAME`), 배포 폴더 경로(`KILO_KIT_HOME`)를 등록합니다. |
@@ -46,7 +47,7 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하도록 등록합니다
 
 ## 배포본을 관리한다면
 
-GitHub Actions(`.github/workflows/offline.yml`)가 [고정된 버전과 해시](config/offline-artifacts.lock.json)를 기준으로 Kilo·Python·rg·fd를 받고, [requirements.lock](config/redis/requirements.lock)에 지정된 빌드센터 MCP용 Python 패키지를 설치해 ZIP을 만듭니다. `v*` 태그를 푸시하면 Releases에 게시합니다.
+GitHub Actions(`.github/workflows/offline.yml`)가 [고정된 버전과 해시](config/offline-artifacts.lock.json)를 기준으로 Kilo·Python·rg·fd를 받고, [빌드센터 MCP](config/redis/requirements.lock)와 [Word MCP](config/word/requirements.lock)의 lock 파일에 지정된 Python 패키지를 설치해 ZIP을 만듭니다. `v*` 태그를 푸시하면 Releases에 게시합니다.
 
 - Kilo 설정 원본: [config/kilo.template.json](config/kilo.template.json)
 - 모델에 전달하는 도구 사용 규칙: [config/AGENTS.md](config/AGENTS.md)

@@ -2,14 +2,14 @@
 
 - 요청받은 작업에 집중하고, 변경 후 검증한 사실만 보고한다.
 - 저장소 이름은 `kilo-kit`다. 사용자의 명시적 요청 없이 변경하지 않는다.
-- 이 저장소는 Kilo CLI(`kilo.exe`), 빌드센터 MCP(동봉 Python), rg·fd만 배포한다. 확장·Edge MCP·언어 서버(LSP)·SVN·Redis 실행 파일은 다시 넣지 않는다.
+- 이 저장소는 Kilo CLI(`kilo.exe`), 빌드센터 MCP·Word MCP(word-mcp-live, 동봉 Python), rg·fd만 배포한다. Word MCP 패키지는 mcp 2가 필요해 `runtime\word-mcp\`에 따로 두고, 빌드센터의 `config/redis/requirements.lock`과 합치지 않는다. 확장·Edge MCP·언어 서버(LSP)·SVN·Redis 실행 파일은 다시 넣지 않는다.
 - `grep`이나 `rg`로 검색할 때는 기본적으로 모든 깊이의 점(`.`)으로 시작하는 디렉터리를 제외한다. `grep` 재귀 검색에는 `--exclude-dir='.*'`를 사용하고, `rg`에서는 기본 숨김 경로 제외 동작을 유지하며 `--hidden`이나 `-uu` 등으로 해제하지 않는다. 숨김 디렉터리 검색은 사용자가 명시적으로 요청한 경우에만 수행한다.
 
 ## 반드시 지킬 배포 조건
 
 **사용자는 GitHub에서 완성된 배포 ZIP 하나를 내려받아 폐쇄망 Windows 개발 PC로 옮기고, 압축을 풀어 `setup.ps1`에서 사내 모델 프로바이더(API 주소·키)만 등록하면 `kilo`를 실행할 수 있어야 한다.**
 
-- GitHub Actions가 실행 파일과 의존성을 준비하고 완성된 ZIP을 만든다. 배포 ZIP에는 Kilo CLI(`bin\kilo\` 전체: `kilo.exe`, tree-sitter WASM, console 리소스), rg·fd(`bin\`), 빌드센터 MCP 코드, MCP용 Python 런타임과 패키지, 설정 템플릿과 라이선스를 포함한다.
+- GitHub Actions가 실행 파일과 의존성을 준비하고 완성된 ZIP을 만든다. 배포 ZIP에는 Kilo CLI(`bin\kilo\` 전체: `kilo.exe`, tree-sitter WASM, console 리소스), rg·fd(`bin\`), 빌드센터 MCP 코드, Word MCP 런처(`mcp\word\`)와 패키지(`runtime\word-mcp\`), MCP용 Python 런타임과 패키지, 설정 템플릿과 라이선스를 포함한다.
 - 대상 PC에서 인터넷 다운로드, npm/pip 설치, Node.js/Python 설치, 수동 실행 파일 수집, 배포물 빌드를 요구하지 않는다. Kilo가 실행 중에 외부로 나가는 기능(models.dev 목록, 자동 업데이트, 텔레메트리, LSP·ripgrep 다운로드, 공유)은 `setup.ps1`의 시스템 변수와 설정으로 끈다.
 - 사용자 절차는 ZIP 다운로드 → 폐쇄망 반입 → 압축 해제 → `setup.ps1` 1회 실행(사내 API 주소·키 입력 또는 `config\models.json`) → 어느 폴더에서나 `kilo` 실행으로 유지한다. 사내 모델 API 연결은 필요하다.
 - `setup.ps1`이 사내 API의 `/models`에서 모델을 찾아 `config\models.json`을 완성하고, Kilo 설정을 `%USERPROFILE%\.config\kilo\`(Kilo 표준 전역 설정 위치)에 설치한다. 같은 이름의 기존 파일은 `.bak`으로 백업한 뒤 바꾼다. 사용자 변경용 `kilo.jsonc`는 덮어쓰지 않는다.

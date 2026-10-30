@@ -40,7 +40,8 @@ $required = @('bin\kilo\kilo.exe', 'bin\kilo\kilo-sandbox-mutation-worker.js', '
     'runtime\python\python.exe', 'runtime\python\python313.dll', 'runtime\python\python313.zip', 'runtime\python\python313._pth',
     'runtime\python\Lib\site-packages\redis\__init__.py', 'runtime\python\Lib\site-packages\mcp\__init__.py',
     'runtime\python\Lib\site-packages\tzdata\__init__.py', 'bin\fd.exe',
-    'mcp\build-center\main.py', 'mcp\build-center\service.py',
+    'runtime\word-mcp\word_document_server\main.py', 'runtime\word-mcp\mcp\__init__.py', 'runtime\word-mcp\win32com\__init__.py',
+    'mcp\build-center\main.py', 'mcp\build-center\service.py', 'mcp\word\word_mcp.py',
     'config\kilo.template.json', 'config\models.example.json', 'config\AGENTS.md',
     'config\redis\settings.json', 'config\redis\server_IP_mappings.example.json', 'config\redis\owners.example.json',
     'third_party\kilo\LICENSE', 'third_party\python\PYTHON-LICENSE.txt', 'third_party\ripgrep\LICENSE-MIT', 'third_party\fd\LICENSE-MIT')
@@ -374,9 +375,12 @@ foreach ($file in @('server_IP_mappings.json', 'owners.json')) {
     $mapping = Join-Path $configDir (Join-Path 'redis' $file)
     if (-not (Test-Path -LiteralPath $mapping)) { Write-Text $mapping '{}' }
 }
-# The MCP server runs on the bundled Python only; fail here rather than inside kilo.
+# The MCP servers run on the bundled Python only; fail here rather than inside kilo.
 $probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import main, redis, mcp; print('MCP_RUNTIME_OK')")
 if ($probe.Code -or $probe.Text -notmatch 'MCP_RUNTIME_OK') { throw "Bundled MCP runtime check failed:`n$($probe.Text)" }
+# The Word server only needs Word itself for word_live_* tools; the import check works without it.
+$probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import word_mcp; word_mcp.use_word_packages(); import pythoncom, word_document_server.main; print('WORD_MCP_OK')")
+if ($probe.Code -or $probe.Text -notmatch 'WORD_MCP_OK') { throw "Bundled Word MCP runtime check failed:`n$($probe.Text)" }
 
 # 5. Machine PATH and variables. Elevate only for this step so per-user files above stay in the caller's profile.
 if (-not (Test-SystemReady $secrets)) {

@@ -92,7 +92,7 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하는 모델로 자동 �
 
 ### 명령 실행 승인
 
-셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
+셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word MCP는 읽기 도구만 승인 없이 실행하고, 문서를 바꾸는 도구는 승인을 요청합니다([Word MCP 안내](../mcp/word/README.md)). 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
 
 ### 언어 서버와 파일 인코딩
 
@@ -114,6 +114,7 @@ models.dev 모델 목록 조회, 자동 업데이트, 텔레메트리, LSP·ripg
 | `Administrator rights are required` | 시스템 환경 변수 등록에 필요한 권한을 얻지 못했습니다. 셋업을 다시 실행하고 관리자 권한 확인 창에서 **예**를 누르세요. |
 | `kilo`를 찾을 수 없음 | 새 PATH가 적용되도록 터미널 프로그램을 완전히 닫고 다시 여세요. IDE 안의 터미널이라면 IDE도 다시 시작해야 합니다. |
 | 다른 모델이나 프로바이더가 사용됨 | 셋업 경고에 나온 `kilo.jsonc`·`opencode.json` 등의 파일이 설정을 덮어쓰고 있는지 확인하세요. 셋업 설정을 사용하려면 해당 파일의 `model`·`provider`·`enabled_providers` 항목을 정리하세요. |
+| Word 도구에서 `Microsoft Word is not running` / `is not open in Word` | Word MCP는 Word에서 열어 둔 문서에만 동작합니다. Word에서 문서를 연 뒤 다시 요청하세요. |
 | 빌드센터 도구 오류 | `config\redis\server_IP_mappings.json`과 Redis 인증 변수를 확인하세요. `kilo mcp list`로 MCP 상태를 확인할 수 있습니다. |
 
 ## 등록한 설정 지우기
