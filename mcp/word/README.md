@@ -9,7 +9,9 @@
 
 ## 열린 문서 전용
 
-word-mcp-live의 도구 중 실행 중인 Word에 COM(pywin32)으로 붙는 `word_live_*` 44개와 Word 창을 캡처하는 `word_screen_capture`만 켭니다(`word_word_live_*`, `word_word_screen_capture`로 보입니다). 이 도구들은 Word에 열린 문서만 찾고, 열려 있지 않으면 `is not open in Word` 오류를 냅니다. Word를 직접 띄우거나 닫힌 파일을 열지 않습니다. 변경은 화면에 바로 보이고 Word에서 `Ctrl+Z`로 되돌릴 수 있습니다.
+word-mcp-live의 도구 중 실행 중인 Word에 COM(pywin32)으로 붙는 `word_live_*` 44개와 Word 창을 캡처하는 `word_screen_capture`만 켭니다(`word_word_live_*`, `word_word_screen_capture`로 보입니다). 이 도구들은 Word에 열린 문서만 찾고, 열려 있지 않으면 `is not open in Word` 오류를 냅니다. 변경은 화면에 바로 보이고 Word에서 `Ctrl+Z`로 되돌릴 수 있습니다.
+
+문서가 열려 있지 않으면 런처가 추가한 `word_live_open`(`word_word_live_open`)으로 엽니다. 절대 경로의 `.docx`·`.docm`·`.doc` 파일을 받아, Word가 꺼져 있으면 화면에 보이게 띄우고 그 파일을 엽니다. 이미 열려 있으면 그 문서를 앞으로 가져오기만 합니다. 여는 동안 Word 확인 창은 끄므로, 다른 사람이 쓰는 중이면 읽기 전용으로 열리고 결과의 `read_only`가 `true`가 됩니다. 문서를 여는 것이므로 실행 전에 승인을 요청합니다.
 
 python-docx로 `.docx` 파일을 직접 읽고 쓰는 나머지 도구(`get_document_text`, `add_table`, `create_document` 등)는 [word_mcp.py](word_mcp.py)가 서버 시작 때 `disable`로 숨깁니다. 모델 도구 목록에 나타나지 않고 이름으로 불러도 `Unknown tool`로 거절됩니다.
 

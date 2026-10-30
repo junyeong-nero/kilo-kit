@@ -6,7 +6,7 @@
 
 - **Kilo CLI 7.8.18** — `bin\kilo\`에 실행 파일과 실행에 필요한 리소스가 들어 있습니다.
 - **빌드센터 MCP** — 빌드센터 Redis에서 프로젝트·모듈·담당자별 빌드 및 시험 결과와 로그를 조회합니다. 전용 Python 런타임도 함께 제공합니다. 자세한 내용은 [빌드센터 MCP 안내](mcp/build-center/README.md)를 참고하세요.
-- **Word MCP** — [word-mcp-live](https://github.com/ykarapazar/word-mcp-live) 1.6.21. Word에서 열어 둔 문서만 화면에서 바로 읽고 편집합니다(Word 필요). 닫힌 `.docx` 파일을 직접 고치는 도구는 끕니다. 자세한 내용은 [Word MCP 안내](mcp/word/README.md)를 참고하세요.
+- **Word MCP** — [word-mcp-live](https://github.com/ykarapazar/word-mcp-live) 1.6.21. Word에 열린 문서만 화면에서 바로 읽고 편집합니다(Word 필요). 열려 있지 않으면 Word에서 열어 줍니다. 닫힌 `.docx` 파일을 직접 고치는 도구는 끕니다. 자세한 내용은 [Word MCP 안내](mcp/word/README.md)를 참고하세요.
 - **rg(ripgrep) 15.2.0, fd 10.5.0** — 내용 검색과 파일 찾기에 사용하는 도구로, `bin\`에 들어 있습니다.
 
 확장, Edge MCP, 언어 서버(LSP)는 포함하지 않습니다.
