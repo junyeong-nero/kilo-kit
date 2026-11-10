@@ -90,9 +90,15 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하는 모델로 자동 �
 
 이미지가 첨부되지 않는다면 터미널의 단축키 설정이나 Windows 클립보드 접근을 확인하세요. 첨부는 되지만 전송이 실패한다면 모델 설정과 사내 API의 이미지 요청 지원 여부를 확인해야 합니다. 모델 자체의 이미지 지원과 별개로, API 서버도 이미지 요청을 처리하도록 구성되어 있어야 합니다.
 
+### Windows 앱 조작과 스크린샷
+
+Windows-MCP는 동봉된 Python으로 실행되며 셋업이 자동 등록합니다. `kilo mcp list`에서 `windows` 연결을 확인한 다음, 무관한 창을 닫고 테스트 앱의 UI 조회와 해당 모니터의 스크린샷부터 요청하세요. 동봉된 0.8.5는 창 영역만 직접 캡처하는 인자를 지원하지 않습니다. 캡처·입력 모두 승인이 필요합니다. 이미지 확인에는 위의 모델 이미지 입력 설정과 사내 API 지원이 필요합니다.
+
+Windows 로컬의 로그인된 잠기지 않은 세션에서 사용하고 AI 조작 중에는 마우스·키보드를 동시에 쓰지 마세요. 캡처와 UI 텍스트가 모델 API로 전달되므로 업무 보안 정책을 따라야 합니다. 제공 도구·비활성화 방법·MFC/WPF 검증 순서는 [Windows-MCP 안내](../mcp/windows/README.md)를 참고하세요.
+
 ### 명령 실행 승인
 
-셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word MCP는 읽기 도구만 승인 없이 실행하고, 문서를 바꾸는 도구는 승인을 요청합니다([Word MCP 안내](../mcp/word/README.md)). 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
+셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word MCP는 읽기 도구만 승인 없이 실행하고, 문서를 바꾸는 도구는 승인을 요청합니다([Word MCP 안내](../mcp/word/README.md)). Windows-MCP는 스크린샷을 포함한 모든 도구에 승인을 요청합니다. 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
 
 ### 언어 서버와 파일 인코딩
 
@@ -101,6 +107,8 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하는 모델로 자동 �
 Kilo의 편집 도구는 파일 인코딩을 자동으로 판별합니다. 다만 한글이 적은 짧은 CP949 파일은 잘못 판별해 한글이 깨질 수 있습니다. 중요한 레거시 파일을 수정했다면 `git diff`나 `svn diff`로 변경 내용을 확인하세요.
 
 ### 외부 통신
+
+Windows-MCP 텔레메트리와 FastMCP 업데이트 확인은 Windows-MCP 런처에서 끕니다. Windows-MCP는 stdio로만 연결하며 HTTP 포트를 열지 않습니다.
 
 models.dev 모델 목록 조회, 자동 업데이트, 텔레메트리, LSP·ripgrep 다운로드, 세션 공유는 셋업이 등록하는 시스템 변수와 `kilo.json` 설정으로 끕니다. 모델 응답을 받으려면 사내 API 연결은 필요합니다.
 
@@ -115,6 +123,7 @@ models.dev 모델 목록 조회, 자동 업데이트, 텔레메트리, LSP·ripg
 | `kilo`를 찾을 수 없음 | 새 PATH가 적용되도록 터미널 프로그램을 완전히 닫고 다시 여세요. IDE 안의 터미널이라면 IDE도 다시 시작해야 합니다. |
 | 다른 모델이나 프로바이더가 사용됨 | 셋업 경고에 나온 `kilo.jsonc`·`opencode.json` 등의 파일이 설정을 덮어쓰고 있는지 확인하세요. 셋업 설정을 사용하려면 해당 파일의 `model`·`provider`·`enabled_providers` 항목을 정리하세요. |
 | Word 도구에서 `Microsoft Word is not running` / `is not open in Word` | Word MCP는 Word에 열린 문서에만 동작합니다. 파일의 절대 경로를 알려 주고 열어 달라고 요청하면 `word_live_open`으로 Word에서 엽니다. 직접 열어도 됩니다. |
+| Windows MCP 연결·캡처 오류 | `kilo mcp list`로 상태를 확인하고 Windows 로컬의 로그인된 세션인지 확인하세요. 이미지 전송만 실패하면 모델의 `imageInput` 설정과 API 이미지 지원을 확인하세요. [Windows-MCP 안내](../mcp/windows/README.md) 참고. |
 | 빌드센터 도구 오류 | `config\redis\server_IP_mappings.json`과 Redis 인증 변수를 확인하세요. `kilo mcp list`로 MCP 상태를 확인할 수 있습니다. |
 
 ## 등록한 설정 지우기

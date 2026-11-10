@@ -2,7 +2,7 @@
 """Build the Windows x64 offline ZIP on an internet-connected Windows runner (GitHub Actions only).
 
 Downloads are pinned by version and hash in config/offline-artifacts.lock.json, config/redis/requirements.lock
-and config/word/requirements.lock.
+and config/word/requirements.lock, config/windows/requirements.lock.
 The target PC never downloads, installs or builds anything.
   python .github/tools/build.py   # prepare bin/ and runtime/, then dist/kilo-kit-win-x64.zip
 """
@@ -118,16 +118,21 @@ def prepare_python():
     word_packages = ROOT / "runtime/word-mcp"
     word_lock = ROOT / "config/word/requirements.lock"
     install_wheels(word_lock, word_packages)
+    windows_packages = ROOT / "runtime/windows-mcp"
+    windows_lock = ROOT / "config/windows/requirements.lock"
+    install_wheels(windows_lock, windows_packages)
     # Embedded Python ignores PYTHONPATH; the server modules and packages are listed explicitly.
-    (runtime / "python313._pth").write_text("python313.zip\n.\nLib/site-packages\n../../mcp/build-center\n../../mcp/word\nimport site\n",
+    (runtime / "python313._pth").write_text("python313.zip\n.\nLib/site-packages\n../../mcp/build-center\n../../mcp/word\n../../mcp/windows\nimport site\n",
                                             encoding="utf-8")
     notices = ROOT / "third_party/python"
     shutil.copy2(runtime / "LICENSE.txt", notices / "PYTHON-LICENSE.txt")
     shutil.copy2(lock, notices / "requirements.lock")
     shutil.copy2(word_lock, notices / "word-requirements.lock")
+    shutil.copy2(windows_lock, notices / "windows-requirements.lock")
     (notices / "PACKAGES.json").write_text(json.dumps([
         {"metadata": str(p.relative_to(ROOT / "runtime")).replace(os.sep, "/"), "sha256": digest(p)}
         for p in sorted(packages.glob("*.dist-info/METADATA")) + sorted(word_packages.glob("*.dist-info/METADATA"))
+        + sorted(windows_packages.glob("*.dist-info/METADATA"))
     ], indent=2) + "\n", encoding="utf-8")
     subprocess.run([str(runtime / "python.exe"), "-I", "-X", "utf8", "-B", "-c",
                     "import redis, mcp, pydantic_core; from main import create_server; from zoneinfo import ZoneInfo; ZoneInfo('Asia/Seoul')"],
@@ -137,6 +142,13 @@ def prepare_python():
                     "import word_mcp; word_mcp.use_word_packages(); import mcp, importlib.metadata as m; "
                     "assert m.version('mcp').startswith('2.'), m.version('mcp'); "
                     "import pythoncom, win32com.client, docx, fastmcp, word_document_server.main"],
+                   check=True, cwd=tempfile.gettempdir())
+    # Import and check the pinned tool registry without starting the desktop lifespan or taking screenshots.
+    subprocess.run([str(runtime / "python.exe"), "-I", "-X", "utf8", "-B", "-c",
+                    "import windows_mcp_launcher as w; w.use_windows_packages(); "
+                    "import pythoncom, windows_mcp.__main__ as s, asyncio; "
+                    "server = s._build_mcp(); s._apply_tool_filter(server, list(w.TOOLS), None); "
+                    "assert {t.name for t in asyncio.run(server.list_tools())} == set(w.TOOLS)"],
                    check=True, cwd=tempfile.gettempdir())
 
 
@@ -152,7 +164,7 @@ def package(lock, output):
     with tempfile.TemporaryDirectory(prefix="package-", dir=CACHE) as tmp:
         stage = Path(tmp) / NAME
         stage.mkdir()
-        for relative in ("bin", "runtime/python", "runtime/word-mcp", "mcp", "config", "scripts", "docs", "third_party"):
+        for relative in ("bin", "runtime/python", "runtime/word-mcp", "runtime/windows-mcp", "mcp", "config", "scripts", "docs", "third_party"):
             shutil.copytree(ROOT / relative, stage / relative, ignore=ignore)
         for relative in ("setup.ps1", "README.md"):
             shutil.copy2(ROOT / relative, stage / relative)

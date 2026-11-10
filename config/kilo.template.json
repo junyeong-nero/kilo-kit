@@ -41,6 +41,7 @@
     },
     "build_center_*": "allow",
     "word_*": "ask",
+    "windows_*": "ask",
     "word_word_screen_capture": "allow",
     "word_word_live_get_text": "allow",
     "word_word_live_take_snapshot": "allow",
@@ -68,6 +69,20 @@
         "-B",
         "-m",
         "main"
+      ],
+      "enabled": true,
+      "timeout": 120000
+    },
+    "windows": {
+      "type": "local",
+      "command": [
+        "{bundle}\\runtime\\python\\python.exe",
+        "-I",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "windows_mcp_launcher"
       ],
       "enabled": true,
       "timeout": 120000

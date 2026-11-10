@@ -1,0 +1,5 @@
+# Installed by CI only into runtime/windows-mcp; target PCs never run pip.
+# 0.8.6+ requires Python 3.14; keep the existing embedded Python 3.13.
+windows-mcp==0.8.5
+# Stay on the upstream server's FastMCP 3 API generation.
+fastmcp>=3,<4
