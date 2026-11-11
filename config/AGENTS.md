@@ -3,7 +3,8 @@
 사용자 요청과 프로젝트 AGENTS.md를 따르고 기존 변경·인코딩·줄바꿈을 보존한다. 관련 파일 찾기 → 필요한 범위 읽기 → 정의·사용처 확인 → 수정 → 관련 검증 순서로 진행한다. 도구·경로·실행 결과를 추측하지 않는다.
 
 - 파일은 glob 또는 `fd`, 문자열은 범위를 좁힌 grep 또는 `rg`, 본문은 read의 offset·limit으로 확인한다. 잘린 결과를 전체로 간주하지 않는다. bin·obj·node_modules·.git·.svn 등 산출물은 검색에서 제외한다.
-- 파일 내용은 edit·write로만 바꾼다. 두 도구는 원래 인코딩(CP949·UTF-16·BOM)을 유지한다. Set-Content·Out-File·`>`로 소스·스크립트를 쓰지 않는다. edit의 oldString은 실제 읽은 내용과 정확히 일치해야 하며, 실패하면 다시 읽고 원인을 고친다. 같은 실패를 그대로 반복하지 않는다.
+- 프로젝트 폴더 안의 텍스트 파일은 encoding_read로 읽고 encoding_edit·encoding_write로 바꾼다. 이 도구는 원래 인코딩(CP949·UTF-16·BOM)과 줄바꿈을 바이트 그대로 유지하고, 손실이 생기면 쓰지 않고 거부한다. 거부 이유가 인코딩 판별이면 사용자에게 알리고 encoding-rules.json 규칙을 제안한다. 내장 read·edit·write·apply_patch는 프로젝트 폴더 밖 파일이나 encoding 도구를 쓸 수 없을 때만 사용한다. Set-Content·Out-File·`>`로 소스·스크립트를 쓰지 않는다. old_string은 읽은 내용과 정확히 일치해야 하며 줄 번호 접두어(`N: `)는 넣지 않는다. 실패하면 다시 읽고 원인을 고친다. 같은 실패를 그대로 반복하지 않는다.
+- 비 UTF-8 파일에서 한글을 검색할 때는 `rg -E euc-kr`처럼 인코딩을 지정한다. 결과가 없다고 해서 문자열이 없다고 단정하지 않는다.
 - 셸(bash 도구)은 Windows에서 PowerShell로 실행된다. PowerShell 문법을 쓰고 외부 명령 직후 $LASTEXITCODE를 확인한다. 빌드는 프로젝트의 기존 도구·SDK·NuGet 설정을 사용하며 폐쇄망에서 다운로드·설치(npm, pip, NuGet 원격 등)를 시도하지 않는다.
 - 심볼 변경은 선언·정의·사용처를 함께 확인한다. 코드 변경은 관련 빌드·테스트로 검증하고, 실패는 첫 오류부터 조사한다. 실행하지 않은 검증은 성공으로 보고하지 않는다.
 - 빌드센터 결과·로그는 build_center_ 도구(list_projects → find_modules → get_results → get_log)로 묶어 조회한다. 키마다 명령을 실행하지 않는다. state 문자열 "4"=성공, "5"=실패다. checktime·meanbuildtime 의미는 응답에 표시된 추정이며 누락·연결 오류를 성공이나 이력 없음으로 해석하지 않는다.

@@ -112,13 +112,13 @@ Windows 로컬의 로그인된 잠기지 않은 세션에서 사용하고 AI 조
 
 ### 명령 실행 승인
 
-셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word MCP는 읽기 도구만 승인 없이 실행하고, 문서를 바꾸는 도구는 승인을 요청합니다([Word MCP 안내](../mcp/word/README.md)). Windows-MCP는 스크린샷을 포함한 모든 도구에 승인을 요청합니다. 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
+파일 편집(내장 `edit`·`write`·`apply_patch`, `encoding_edit`·`encoding_write`)은 실행 전에 승인을 요청하고, `encoding_read`는 승인 없이 실행합니다. 셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word MCP는 읽기 도구만 승인 없이 실행하고, 문서를 바꾸는 도구는 승인을 요청합니다([Word MCP 안내](../mcp/word/README.md)). Windows-MCP는 스크린샷을 포함한 모든 도구에 승인을 요청합니다. 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
 
 ### 언어 서버와 파일 인코딩
 
 언어 서버(LSP)는 배포본에 포함하지 않으며, 설정에서도 `"lsp": false`로 꺼 둡니다.
 
-Kilo의 편집 도구는 파일 인코딩을 자동으로 판별합니다. 다만 한글이 적은 짧은 CP949 파일은 잘못 판별해 한글이 깨질 수 있습니다. 중요한 레거시 파일을 수정했다면 `git diff`나 `svn diff`로 변경 내용을 확인하세요.
+Kilo 내장 편집 도구는 파일 인코딩을 자동으로 판별하지만, 한글이 적은 짧은 CP949 파일은 잘못 판별해 한글이 깨질 수 있습니다. 그래서 셋업은 [인코딩 보존 MCP](../mcp/encoding/README.md)(`encoding_read`·`encoding_edit`·`encoding_write`)를 등록하고, 도구 사용 규칙에서 프로젝트 파일은 이 도구로 고치도록 안내합니다. 내장 `edit`·`write`·`apply_patch`는 실행 전에 승인을 요청하므로, 프로젝트 안의 레거시 파일에 내장 편집이 요청되면 거절하고 `encoding_edit`를 쓰라고 지시하세요. 중요한 레거시 파일을 수정한 뒤에는 `git diff`나 `svn diff`로 변경 내용을 확인하세요.
 
 ### 외부 통신
 

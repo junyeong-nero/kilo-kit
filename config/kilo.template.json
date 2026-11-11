@@ -5,6 +5,7 @@
   "formatter": false,
   "lsp": false,
   "permission": {
+    "edit": "ask",
     "bash": {
       "*": "ask",
       "Get-ChildItem *": "allow",
@@ -40,6 +41,8 @@
       "*>*": "ask"
     },
     "build_center_*": "allow",
+    "encoding_*": "ask",
+    "encoding_read": "allow",
     "word_*": "ask",
     "windows_*": "ask",
     "word_word_screen_capture": "allow",
@@ -69,6 +72,20 @@
         "-B",
         "-m",
         "main"
+      ],
+      "enabled": true,
+      "timeout": 120000
+    },
+    "encoding": {
+      "type": "local",
+      "command": [
+        "{bundle}\\runtime\\python\\python.exe",
+        "-I",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "encoding_mcp"
       ],
       "enabled": true,
       "timeout": 120000

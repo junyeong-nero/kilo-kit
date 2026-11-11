@@ -29,7 +29,7 @@ try {
     $configPath = Join-Path $env:XDG_CONFIG_HOME 'kilo\kilo.json'
     $config = [IO.File]::ReadAllText($configPath, $utf8) | ConvertFrom-Json
     if ($config.model -ne 'corp/kit-smoke') { throw 'Provider/model config did not install.' }
-    foreach ($name in @('build_center', 'word', 'windows')) {
+    foreach ($name in @('build_center', 'encoding', 'word', 'windows')) {
         if ($config.mcp.$name.enabled -ne $true) { throw "Missing MCP: $name" }
     }
     # This does not call a model or desktop tools. Capture native stderr safely on PowerShell 5.1.

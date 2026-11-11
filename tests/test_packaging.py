@@ -46,7 +46,7 @@ class PackagingTests(unittest.TestCase):
         self.assertIn("kilo", lock["artifacts"])
         self.assertNotIn("opencode", lock["artifacts"])
         template = json.loads((ROOT / "config/kilo.template.json").read_text())
-        self.assertEqual(set(template["mcp"]), {"build_center", "word", "windows"})
+        self.assertEqual(set(template["mcp"]), {"build_center", "encoding", "word", "windows"})
         self.assertNotIn("plugin", template)
         self.assertFalse((ROOT / "config/opencode.cmd").exists())
         self.assertFalse((ROOT / "tools/encoding/package.json").exists())

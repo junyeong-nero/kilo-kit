@@ -43,7 +43,7 @@ $required = @('bin\kilo\kilo.exe', 'bin\kilo\kilo-sandbox-mutation-worker.js', '
     'runtime\word-mcp\word_document_server\main.py', 'runtime\word-mcp\mcp\__init__.py', 'runtime\word-mcp\win32com\__init__.py',
     'runtime\windows-mcp\windows_mcp\__main__.py', 'runtime\windows-mcp\mcp\__init__.py',
     'runtime\windows-mcp\win32com\__init__.py', 'runtime\windows-mcp\PIL\Image.py',
-    'mcp\build-center\main.py', 'mcp\build-center\service.py', 'mcp\word\word_mcp.py',
+    'mcp\build-center\main.py', 'mcp\build-center\service.py', 'mcp\encoding\encoding_mcp.py', 'mcp\word\word_mcp.py',
     'mcp\windows\windows_mcp_launcher.py',
     'config\kilo.template.json', 'config\models.example.json', 'config\AGENTS.md',
     'config\redis\settings.json', 'config\redis\server_IP_mappings.example.json', 'config\redis\owners.example.json',
@@ -397,7 +397,7 @@ foreach ($file in @('server_IP_mappings.json', 'owners.json')) {
     if (-not (Test-Path -LiteralPath $mapping)) { Write-Text $mapping '{}' }
 }
 # The MCP servers run on the bundled Python only; fail here rather than inside kilo.
-$probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import main, redis, mcp; print('MCP_RUNTIME_OK')")
+$probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import main, encoding_mcp, redis, mcp; print('MCP_RUNTIME_OK')")
 if ($probe.Code -or $probe.Text -notmatch 'MCP_RUNTIME_OK') { throw "Bundled MCP runtime check failed:`n$($probe.Text)" }
 # The Word server only needs Word itself for word_live_* tools; the import check works without it.
 $probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import word_mcp; word_mcp.use_word_packages(); import pythoncom, word_document_server.main; print('WORD_MCP_OK')")

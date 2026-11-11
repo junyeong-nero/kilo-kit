@@ -8,11 +8,12 @@
 
 - **Kilo CLI 7.8.18** — `bin\kilo\`에 실행 파일과 실행에 필요한 리소스가 들어 있습니다.
 - **빌드센터 MCP** — 빌드센터 Redis에서 프로젝트·모듈·담당자별 빌드 및 시험 결과와 로그를 조회합니다. 전용 Python 런타임도 함께 제공합니다. 자세한 내용은 [빌드센터 MCP 안내](mcp/build-center/README.md)를 참고하세요.
+- **인코딩 보존 MCP** — CP949·EUC-KR·UTF-16·BOM 파일의 인코딩과 줄바꿈을 그대로 유지하면서 읽고 고칩니다. 동봉 Python만 사용합니다. [인코딩 보존 MCP 안내](mcp/encoding/README.md)를 참고하세요.
 - **Word MCP** — [word-mcp-live](https://github.com/ykarapazar/word-mcp-live) 1.6.21. Word에 열린 문서만 화면에서 바로 읽고 편집합니다(Word 필요). 열려 있지 않으면 Word에서 열어 줍니다. 닫힌 `.docx` 파일을 직접 고치는 도구는 끕니다. 자세한 내용은 [Word MCP 안내](mcp/word/README.md)를 참고하세요.
 - **Windows-MCP 0.8.5** — Windows 앱의 UI 조회·클릭·입력·스크린샷을 제공합니다. 기존 Python 3.13과 호환되는 버전으로, 패키지를 별도로 동봉합니다. 캡처·조작은 모두 승인을 요청합니다. [Windows-MCP 안내](mcp/windows/README.md)를 참고하세요.
 - **rg(ripgrep) 15.2.0, fd 10.5.0** — 내용 검색과 파일 찾기에 사용하는 도구로, `bin\`에 들어 있습니다.
 
-확장, Edge MCP, 언어 서버(LSP)는 포함하지 않습니다. OpenCode 전용 인코딩 custom tools·npm 의존성·DB 분리 진입점도 제거했습니다. 따라서 해당 custom tools의 CP949/UTF-16 보존 기능은 이번 Kilo 배포에 포함되지 않습니다.
+확장, Edge MCP, 언어 서버(LSP)는 포함하지 않습니다. OpenCode 전용 인코딩 custom tools·npm 의존성·DB 분리 진입점도 제거했습니다. CP949/UTF-16 보존은 위의 인코딩 보존 MCP가 대신 맡습니다.
 
 ## 시작하기
 
@@ -41,7 +42,7 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하도록 등록합니다
 | 항목 | 설정 내용 |
 |---|---|
 | 모델 프로바이더 | 입력한 주소의 `/models`에서 모델 목록과 컨텍스트 크기를 읽어 `config\models.json`을 만듭니다. 모델이 여러 개면 기본 모델을 선택할 수 있습니다. |
-| Kilo 설정 | `%USERPROFILE%\.config\kilo\`에 `kilo.json`과 도구 사용 규칙인 `AGENTS.md`를 설치합니다. `kilo.json`에는 프로바이더·모델·빌드센터 MCP·Word MCP·Windows-MCP·권한·오프라인 설정이 들어갑니다. 기존 파일은 `.bak`으로 백업하고, 개인 설정용 `kilo.jsonc`는 덮어쓰지 않습니다. |
+| Kilo 설정 | `%USERPROFILE%\.config\kilo\`에 `kilo.json`과 도구 사용 규칙인 `AGENTS.md`를 설치합니다. `kilo.json`에는 프로바이더·모델·빌드센터 MCP·인코딩 보존 MCP·Word MCP·Windows-MCP·권한·오프라인 설정이 들어갑니다. 기존 파일은 `.bak`으로 백업하고, 개인 설정용 `kilo.jsonc`는 덮어쓰지 않습니다. |
 | ripgrep | Kilo가 인터넷에서 다운로드하지 않도록, 동봉된 rg를 `%USERPROFILE%\.cache\kilo\bin\rg.exe`에도 복사합니다. |
 | 시스템 PATH | 어느 폴더에서든 `kilo`, `rg`, `fd`를 실행할 수 있도록 `bin\kilo`와 `bin`을 등록합니다. |
 | 시스템 변수 | API 키(`CORP_LLM_API_KEY`), 실행 옵션으로 지정한 경우에만 빌드센터 Redis 인증 정보(`REDISCLI_AUTH`, `HSC_REDIS_USERNAME`), 배포 폴더 경로(`KILO_KIT_HOME`)를 등록합니다. |

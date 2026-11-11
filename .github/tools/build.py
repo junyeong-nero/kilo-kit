@@ -122,7 +122,7 @@ def prepare_python():
     windows_lock = ROOT / "config/windows/requirements.lock"
     install_wheels(windows_lock, windows_packages)
     # Embedded Python ignores PYTHONPATH; the server modules and packages are listed explicitly.
-    (runtime / "python313._pth").write_text("python313.zip\n.\nLib/site-packages\n../../mcp/build-center\n../../mcp/word\n../../mcp/windows\nimport site\n",
+    (runtime / "python313._pth").write_text("python313.zip\n.\nLib/site-packages\n../../mcp/build-center\n../../mcp/encoding\n../../mcp/word\n../../mcp/windows\nimport site\n",
                                             encoding="utf-8")
     notices = ROOT / "third_party/python"
     shutil.copy2(runtime / "LICENSE.txt", notices / "PYTHON-LICENSE.txt")
@@ -135,7 +135,9 @@ def prepare_python():
         + sorted(windows_packages.glob("*.dist-info/METADATA"))
     ], indent=2) + "\n", encoding="utf-8")
     subprocess.run([str(runtime / "python.exe"), "-I", "-X", "utf8", "-B", "-c",
-                    "import redis, mcp, pydantic_core; from main import create_server; from zoneinfo import ZoneInfo; ZoneInfo('Asia/Seoul')"],
+                    "import redis, mcp, pydantic_core; from main import create_server; from zoneinfo import ZoneInfo; ZoneInfo('Asia/Seoul'); "
+                    "import encoding_mcp, asyncio, tempfile; server = encoding_mcp.create_server(tempfile.gettempdir()); "
+                    "assert {t.name for t in asyncio.run(server.list_tools())} == {'read', 'edit', 'write'}"],
                    check=True, cwd=tempfile.gettempdir())
     # The Word server must see mcp 2 and a working pywin32; importing main registers its tools without starting.
     subprocess.run([str(runtime / "python.exe"), "-I", "-X", "utf8", "-B", "-c",
