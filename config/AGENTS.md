@@ -3,9 +3,7 @@
 사용자 요청과 프로젝트 AGENTS.md를 따르고 기존 변경·인코딩·줄바꿈을 보존한다. 관련 파일 찾기 → 필요한 범위 읽기 → 정의·사용처 확인 → 수정 → 관련 검증 순서로 진행한다. 도구·경로·실행 결과를 추측하지 않는다.
 
 - 파일은 glob 또는 `fd`, 문자열은 범위를 좁힌 grep 또는 `rg`, 본문은 read의 offset·limit으로 확인한다. 잘린 결과를 전체로 간주하지 않는다. bin·obj·node_modules·.git·.svn 등 산출물은 검색에서 제외한다.
-- 파일은 kit의 read/edit/write(또는 encoding_read/encoding_edit/encoding_write)로 읽고 바꾼다. 이 도구는 프로젝트 루트의 encoding-rules.json 규칙, BOM, 유효한 UTF-8을 사용한다. 미지정 비 UTF-8·손실 변환은 거부한다. 실패 시 추측하지 말고 사용자에게 인코딩을 확인한다. CP949와 EUC-KR을 혼동하지 않는다. Git이 아닌 프로젝트는 실행 폴더가 규칙 루트다.
-- apply_patch는 인코딩 보호를 우회하므로 금지한다. 모델에서 edit/write가 보이지 않으면 encoding_edit/encoding_write를 사용한다. Set-Content·Out-File·`>`·Python/Node/셸 스크립트로 소스를 덮어써 우회하지 않는다. oldString은 실제 읽은 내용과 정확히 일치해야 한다. grep의 비 UTF-8 한글 결과는 완전하다고 가정하지 않는다. 바이너리 문서·이미지는 해당 MCP를 사용한다.
-- diff 승인을 받고 저장하며, 동시 변경·변환 불가·혼합 줄바꿈 오류는 자동 우회하지 않는다. IDE와 같은 파일을 동시에 수정하지 않는다. 잔존 .opencode-kit.lock은 진행 중 작업과 원본 상태를 확인하기 전 삭제하지 않는다.
+- 파일 내용은 edit·write로만 바꾼다. 두 도구는 원래 인코딩(CP949·UTF-16·BOM)을 유지한다. Set-Content·Out-File·`>`로 소스·스크립트를 쓰지 않는다. edit의 oldString은 실제 읽은 내용과 정확히 일치해야 하며, 실패하면 다시 읽고 원인을 고친다. 같은 실패를 그대로 반복하지 않는다.
 - 셸(bash 도구)은 Windows에서 PowerShell로 실행된다. PowerShell 문법을 쓰고 외부 명령 직후 $LASTEXITCODE를 확인한다. 빌드는 프로젝트의 기존 도구·SDK·NuGet 설정을 사용하며 폐쇄망에서 다운로드·설치(npm, pip, NuGet 원격 등)를 시도하지 않는다.
 - 심볼 변경은 선언·정의·사용처를 함께 확인한다. 코드 변경은 관련 빌드·테스트로 검증하고, 실패는 첫 오류부터 조사한다. 실행하지 않은 검증은 성공으로 보고하지 않는다.
 - 빌드센터 결과·로그는 build_center_ 도구(list_projects → find_modules → get_results → get_log)로 묶어 조회한다. 키마다 명령을 실행하지 않는다. state 문자열 "4"=성공, "5"=실패다. checktime·meanbuildtime 의미는 응답에 표시된 추정이며 누락·연결 오류를 성공이나 이력 없음으로 해석하지 않는다.

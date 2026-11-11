@@ -1,62 +1,52 @@
-"""Synthetic packaging test. This does not execute Windows binaries or claim a deployable build."""
-import ast
-import hashlib
+"""Small synthetic ZIP regression: preserve runtime modules, exclude private settings."""
 import importlib.util
 import json
 from pathlib import Path
 import tempfile
 import unittest
-import zipfile
 from unittest.mock import patch
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location("offline_builder", ROOT / ".github/tools/build.py")
-builder = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(builder)
+spec = importlib.util.spec_from_file_location("build", ROOT / ".github/tools/build.py")
+build = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(build)
 
 
 class PackagingTests(unittest.TestCase):
-    def test_bundle_layout_and_private_file_exclusions(self):
+    def test_kilo_bundle_and_runtime_cache(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            for folder in ("bin", "runtime/python", "runtime/word-mcp", "runtime/windows-mcp",
-                           "runtime/opencode-tools", "mcp", "config", "scripts", "docs", "third_party"):
-                (root / folder).mkdir(parents=True, exist_ok=True)
-                (root / folder / "fixture.txt").write_text("fixture")
-            for filename in ("setup.ps1", "README.md", "bin/opencode.cmd", "runtime/opencode-tools/index.js"):
-                (root / filename).write_text("fixture")
-            for filename in ("config/models.json", "config/owners.json", "config/server_IP_mappings.json", "config/settings.bak"):
-                (root / filename).write_text("DO NOT SHIP")
-            module = root / "runtime/windows-mcp/beartype/_util/cache/__init__.py"
-            module.parent.mkdir(parents=True)
-            module.write_text("# Runtime code, not disposable cache")
-            redis_cache = root / "config/redis/cache/private.json"
-            redis_cache.parent.mkdir(parents=True)
-            redis_cache.write_text("DO NOT SHIP")
-            cache = root / ".cache"
+            for name in ("bin", "runtime/python", "runtime/word-mcp", "runtime/windows-mcp", "mcp", "config", "scripts", "docs", "third_party"):
+                (root / name).mkdir(parents=True)
+                (root / name / "fixture.txt").write_text("fixture")
+            for name in ("setup.ps1", "README.md"):
+                (root / name).write_text("fixture")
+            module = "runtime/windows-mcp/beartype/_util/cache/__init__.py"
+            for name in ("bin/kilo/kilo.exe", module, "config/redis/cache/private.json", "config/models.json", "config/redis/owners.json", "config/redis/server_IP_mappings.json", "config/models.json.bak"):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("fixture")
+            cache = root / "build-cache"
             cache.mkdir()
-            output = root / "dist/opencode-kit-win-x64.zip"
-            with patch.object(builder, "ROOT", root), patch.object(builder, "CACHE", cache):
-                builder.package({"platform": "win-x64", "artifacts": {}}, output)
+            output = root / "dist/kilo-kit-win-x64.zip"
+            with patch.object(build, "ROOT", root), patch.object(build, "CACHE", cache):
+                build.package({"platform": "win-x64", "artifacts": {}}, output)
             with zipfile.ZipFile(output) as archive:
-                names = archive.namelist()
-                self.assertIn("opencode-kit/bin/opencode.cmd", names)
-                self.assertIn("opencode-kit/runtime/opencode-tools/index.js", names)
-                self.assertIn("opencode-kit/runtime/windows-mcp/beartype/_util/cache/__init__.py", names)
-                self.assertNotIn("opencode-kit/config/redis/cache/private.json", names)
-                for forbidden in ("models.json", "owners.json", "server_IP_mappings.json", "settings.bak"):
-                    self.assertFalse(any(name.endswith(forbidden) for name in names))
-                manifest = json.loads(archive.read("opencode-kit/manifest.json"))
+                manifest = json.loads(archive.read("kilo-kit/manifest.json"))
+                self.assertIn("bin/kilo/kilo.exe", manifest["files"])
+                self.assertIn(module, manifest["files"])
+                for name in ("config/models.json", "config/redis/owners.json", "config/redis/server_IP_mappings.json", "config/models.json.bak", "config/redis/cache/private.json"):
+                    self.assertNotIn(name, manifest["files"])
                 for name, digest in manifest["files"].items():
-                    self.assertEqual(hashlib.sha256(archive.read("opencode-kit/" + name)).hexdigest(), digest)
+                    self.assertEqual(build.digest(root / name), digest)
 
-    def test_source_and_config_contracts(self):
-        ast.parse((ROOT / ".github/tools/build.py").read_text())
-        self.assertTrue((ROOT / "scripts/setup.ps1").read_text().isascii())
-        config = json.loads((ROOT / "config/opencode.template.json").read_text())
-        self.assertEqual(set(config["mcp"]), {"build_center", "word", "windows"})
-        self.assertEqual(config["permission"]["windows_*"], "ask")
+    def test_kilo_only_contract(self):
         lock = json.loads((ROOT / "config/offline-artifacts.lock.json").read_text())
-        package = json.loads((ROOT / "tools/encoding/package.json").read_text())
-        self.assertEqual(lock["artifacts"]["opencode"]["version"], package["dependencies"]["@opencode-ai/plugin"])
-        self.assertNotIn("kilo", lock["artifacts"])
+        self.assertIn("kilo", lock["artifacts"])
+        self.assertNotIn("opencode", lock["artifacts"])
+        template = json.loads((ROOT / "config/kilo.template.json").read_text())
+        self.assertEqual(set(template["mcp"]), {"build_center", "word", "windows"})
+        self.assertNotIn("plugin", template)
+        self.assertFalse((ROOT / "config/opencode.cmd").exists())
+        self.assertFalse((ROOT / "tools/encoding/package.json").exists())

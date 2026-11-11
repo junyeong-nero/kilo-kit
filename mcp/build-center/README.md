@@ -1,11 +1,11 @@
 # 빌드센터 MCP
 
-Redis에 저장된 빌드센터 결과(빌드·동적시험·정적시험, 로그)를 OpenCode에서 조회하는 동봉 MCP 서버입니다. OpenCode 설정(`%USERPROFILE%\.config\opencode\opencode.json`)의 서버 이름은 `build_center`입니다.
+Redis에 저장된 빌드센터 결과(빌드·동적시험·정적시험, 로그)를 Kilo에서 조회하는 동봉 MCP 서버입니다. Kilo 설정(`%USERPROFILE%\.config\kilo\kilo.json`)의 서버 이름은 `build_center`입니다.
 
-- **실행:** OpenCode가 `opencode.json`의 `mcp.build_center` 항목을 보고 동봉 Python으로 이 서버를 stdio로 실행합니다. 항목은 `setup.ps1`이 [config/opencode.template.json](../../config/opencode.template.json)에서 만듭니다. Python·pip를 따로 설치하거나 서버를 직접 띄울 필요가 없습니다.
+- **실행:** Kilo가 `kilo.json`의 `mcp.build_center` 항목을 보고 동봉 Python으로 이 서버를 stdio로 실행합니다. 항목은 `setup.ps1`이 [config/kilo.template.json](../../config/kilo.template.json)에서 만듭니다. Python·pip를 따로 설치하거나 서버를 직접 띄울 필요가 없습니다.
 - **조회 전용:** Redis에는 프로젝트별 연결 풀을 재사용하고, 조회만 합니다.
-- **도구 이름:** 모델에는 `build_center_<도구>` 이름으로 보입니다. 조회 전용이라 `opencode.json`의 `permission`에서 승인 없이 실행되도록 허용합니다.
-- **실행 조건:** `<배포 폴더>\runtime\python\python.exe -I -X utf8 -B -m main`을 절대 경로로 실행하므로 PATH의 다른 Python과 섞이지 않습니다. 동봉 Python의 `python313._pth`가 이 폴더를 모듈 경로에 넣고, `-I`라서 프로젝트 폴더의 `main.py`가 대신 실행되지 않습니다. 인증 환경 변수는 OpenCode의 환경을 물려받습니다.
+- **도구 이름:** 모델에는 `build_center_<도구>` 이름으로 보입니다. 조회 전용이라 `kilo.json`의 `permission`에서 승인 없이 실행되도록 허용합니다.
+- **실행 조건:** `<배포 폴더>\runtime\python\python.exe -I -X utf8 -B -m main`을 절대 경로로 실행하므로 PATH의 다른 Python과 섞이지 않습니다. 동봉 Python의 `python313._pth`가 이 폴더를 모듈 경로에 넣고, `-I`라서 프로젝트 폴더의 `main.py`가 대신 실행되지 않습니다. 인증 환경 변수는 Kilo의 환경을 물려받습니다.
 
 ## 사내 설정
 
@@ -87,7 +87,7 @@ Redis에 저장된 빌드센터 결과(빌드·동적시험·정적시험, 로�
 ## 오류와 조회 비용
 
 - **일부 실패:** 키 누락(`missing`), JSON 손상(`invalid_json`), 로그 누락·타입 오류는 해당 모듈·작업에만 표시하고 정상 결과는 함께 돌려줍니다.
-- **서버 시작 실패:** `opencode mcp list`에서 확인합니다. 자세한 내용은 `opencode --print-logs`로 봅니다.
+- **서버 시작 실패:** Kilo 화면 하단의 MCP 상태(`/status`)나 `kilo mcp list`에서 확인합니다. 자세한 내용은 `kilo --print-logs`로 봅니다.
 - **연결 실패:** 접속·인증·TLS 실패는 MCP 오류로 돌려줍니다. 빈 결과나 성공으로 바꾸지 않습니다.
 - **설정 오류:** 잘못된 매핑·설정은 파일 이름을 넣은 오류로 돌려줍니다.
 
@@ -104,5 +104,5 @@ Redis 부하를 줄이는 방식:
 
 ## 개발 메모
 
-- MCP 클라이언트는 OpenCode에 내장된 것을 씁니다. 이 폴더에는 서버만 둡니다.
+- MCP 클라이언트는 Kilo에 내장된 것을 씁니다. 이 폴더에는 서버만 둡니다.
 - Python 패키지는 CI가 `config/redis/requirements.lock`의 버전·해시로 Windows wheel을 준비합니다. 대상 PC에서는 설치하지 않습니다.

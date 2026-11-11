@@ -24,8 +24,8 @@ package folders and their hashes. The manifest of the complete ZIP covers every 
 Upstreams: https://www.python.org/, https://github.com/redis/redis-py,
 https://github.com/modelcontextprotocol/python-sdk, https://github.com/ykarapazar/word-mcp-live,
 https://github.com/CursorTouch/Windows-MCP.
-OpenCode starts the servers through
-its built-in MCP support (`opencode.json`, written by setup.ps1); no separate MCP client is bundled.
+Kilo starts the servers through
+its built-in MCP support (`kilo.json`, written by setup.ps1); no separate MCP client is bundled.
 
 Real server mappings, owner mappings, credentials, sessions, and caches are not
 part of the release ZIP.

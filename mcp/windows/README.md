@@ -1,16 +1,16 @@
 # Windows-MCP
 
-[CursorTouch/Windows-MCP](https://github.com/CursorTouch/Windows-MCP)로 Windows 앱을 실행·조작하고 UI 트리와 스크린샷을 OpenCode에 전달합니다. WPF·MFC 앱의 빌드 후 수동 확인을 보조하는 용도입니다. UIA에 노출되지 않는 커스텀 컨트롤은 화면 기반 조작이 필요하며, 앱마다 실제 검증해야 합니다.
+[CursorTouch/Windows-MCP](https://github.com/CursorTouch/Windows-MCP)로 Windows 앱을 실행·조작하고 UI 트리와 스크린샷을 Kilo에 전달합니다. WPF·MFC 앱의 빌드 후 수동 확인을 보조하는 용도입니다. UIA에 노출되지 않는 커스텀 컨트롤은 화면 기반 조작이 필요하며, 앱마다 실제 검증해야 합니다.
 
 ## 배포와 설정
 
 - **Windows-MCP 0.8.5**를 사용합니다. 0.8.6·0.8.7·0.8.8은 Python 3.14 이상을 요구하므로 기존 Python 3.13 배포본에 넣지 않습니다. 최신 버전의 기능·수정 사항이 모두 포함된 것은 아닙니다.
 - GitHub Actions가 `config/windows/requirements.lock`의 버전·해시를 확인해 Windows x64 / Python 3.13용 wheel을 `runtime/windows-mcp/`에 설치합니다. 폐쇄망 PC에서는 uv·pip 설치나 다운로드를 하지 않습니다.
 - 동봉 Python과 `mcp/windows/windows_mcp_launcher.py`로 실행합니다. 빌드센터·Word의 패키지 경로는 사용하지 않습니다.
-- `setup.ps1`이 전역 OpenCode 설정에 `windows` MCP를 활성화해 등록합니다. stdio만 사용하며 HTTP 포트를 열지 않습니다. Windows-MCP 텔레메트리와 FastMCP 업데이트 확인은 런처에서 끕니다.
+- `setup.ps1`이 전역 Kilo 설정에 `windows` MCP를 활성화해 등록합니다. stdio만 사용하며 HTTP 포트를 열지 않습니다. Windows-MCP 텔레메트리와 FastMCP 업데이트 확인은 런처에서 끕니다.
 - 스크린샷을 모델이 보려면 `config/models.json`의 해당 모델에 `"imageInput": true`가 필요합니다. 변경 후 셋업을 다시 실행하세요. 모델과 사내 API 모두 이미지 입력을 지원해야 합니다.
 
-OpenCode에서 `opencode mcp list`로 연결 상태를 확인합니다. 개인 설정으로 끄려면 `%USERPROFILE%\.config\opencode\opencode.jsonc`의 기존 내용에 다음 항목을 병합합니다.
+Kilo에서 `kilo mcp list`로 연결 상태를 확인합니다. 개인 설정으로 끄려면 `%USERPROFILE%\.config\kilo\kilo.jsonc`의 기존 내용에 다음 항목을 병합합니다.
 
 ```json
 {
@@ -31,13 +31,13 @@ OpenCode에서 `opencode mcp list`로 연결 상태를 확인합니다. 개인 �
 | `Click`, `Type`, `Scroll`, `Move`, `Shortcut` | 마우스·키보드 조작 |
 | `Wait`, `WaitFor` | 시간 대기 또는 UI 조건 대기 |
 
-OpenCode에서는 `windows_` 접두사가 붙습니다. **캡처를 포함한 모든 도구는 승인 대상**입니다. PowerShell·Registry·FileSystem·Scrape·Clipboard·Process 등 나머지 도구는 런처의 허용 목록에서 제외합니다. 빌드는 기존 OpenCode 셸 도구와 프로젝트의 빌드 명령을 사용합니다.
+Kilo에서는 `windows_` 접두사가 붙습니다. **캡처를 포함한 모든 도구는 승인 대상**입니다. PowerShell·Registry·FileSystem·Scrape·Clipboard·Process 등 나머지 도구는 런처의 허용 목록에서 제외합니다. 빌드는 기존 Kilo 셸 도구와 프로젝트의 빌드 명령을 사용합니다.
 
 이 제한은 샌드박스가 아닙니다. App으로 프로그램을 실행하거나 키보드로 다른 앱을 조작할 수 있으므로 승인 범위를 확인해야 합니다. 기존 개인·프로젝트 권한 설정이 전역 설정을 덮어쓸 수도 있습니다.
 
 ## 첫 확인 순서
 
-1. Windows 로컬의 로그인된 잠기지 않은 데스크톱에서 OpenCode를 실행합니다. WSL·SSH·서비스 세션에서 직접 실행하는 방식은 대상이 아닙니다.
+1. Windows 로컬의 로그인된 잠기지 않은 데스크톱에서 Kilo를 실행합니다. WSL·SSH·서비스 세션에서 직접 실행하는 방식은 대상이 아닙니다.
 2. 민감한 창을 닫고 테스트 앱을 직접 엽니다. 먼저 아래처럼 읽기만 요청합니다.
 
    > windows MCP로 테스트 앱 창과 UI 요소를 확인해 줘. 테스트 앱이 있는 모니터를 스크린샷으로 찍어 화면을 설명해 줘. 클릭이나 입력은 하지 마.
