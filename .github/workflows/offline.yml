@@ -47,7 +47,7 @@ jobs:
       - name: Check relocated ZIP and offline initialization
         shell: powershell
         run: |
-          $parent = Join-Path $env:RUNNER_TEMP 'offline space 한글'
+          $parent = Join-Path $env:RUNNER_TEMP ('offline space ' + [char]0xD55C + [char]0xAE00)
           Expand-Archive dist/opencode-kit-win-x64.zip -DestinationPath $parent
           $bundle = Join-Path $parent 'opencode-kit'
           & "$bundle\setup.ps1" -Check

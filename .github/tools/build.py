@@ -172,10 +172,12 @@ def package(lock, output):
     output = Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     # Never ship a real models.json, internal mappings, backups, caches or bytecode.
-    never = {"models.json", "server_IP_mappings.json", "owners.json", "cache", "__pycache__"}
+    never = {"models.json", "server_IP_mappings.json", "owners.json", "__pycache__"}
 
     def ignore(directory, names):
-        return [n for n in names if n in never or n.endswith((".pyc", ".bak", ".log"))]
+        # Packages such as beartype have real source modules named cache. Exclude only our Redis cache.
+        redis = Path(directory) == ROOT / "config/redis"
+        return [n for n in names if n in never or n.endswith((".pyc", ".bak", ".log")) or (redis and n == "cache")]
 
     with tempfile.TemporaryDirectory(prefix="package-", dir=CACHE) as tmp:
         stage = Path(tmp) / NAME

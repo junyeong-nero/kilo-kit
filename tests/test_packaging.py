@@ -27,6 +27,12 @@ class PackagingTests(unittest.TestCase):
                 (root / filename).write_text("fixture")
             for filename in ("config/models.json", "config/owners.json", "config/server_IP_mappings.json", "config/settings.bak"):
                 (root / filename).write_text("DO NOT SHIP")
+            module = root / "runtime/windows-mcp/beartype/_util/cache/__init__.py"
+            module.parent.mkdir(parents=True)
+            module.write_text("# Runtime code, not disposable cache")
+            redis_cache = root / "config/redis/cache/private.json"
+            redis_cache.parent.mkdir(parents=True)
+            redis_cache.write_text("DO NOT SHIP")
             cache = root / ".cache"
             cache.mkdir()
             output = root / "dist/opencode-kit-win-x64.zip"
@@ -36,6 +42,8 @@ class PackagingTests(unittest.TestCase):
                 names = archive.namelist()
                 self.assertIn("opencode-kit/bin/opencode.cmd", names)
                 self.assertIn("opencode-kit/runtime/opencode-tools/index.js", names)
+                self.assertIn("opencode-kit/runtime/windows-mcp/beartype/_util/cache/__init__.py", names)
+                self.assertNotIn("opencode-kit/config/redis/cache/private.json", names)
                 for forbidden in ("models.json", "owners.json", "server_IP_mappings.json", "settings.bak"):
                     self.assertFalse(any(name.endswith(forbidden) for name in names))
                 manifest = json.loads(archive.read("opencode-kit/manifest.json"))
