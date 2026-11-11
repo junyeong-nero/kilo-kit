@@ -1,4 +1,4 @@
-"""Bundled stdio MCP endpoint, started by Kilo from the kilo.json that setup.ps1 installs. stdout is reserved for the MCP protocol."""
+"""Bundled stdio MCP endpoint, started by OpenCode from the opencode.json that setup.ps1 installs. stdout is reserved for the MCP protocol."""
 import argparse
 from contextlib import asynccontextmanager
 from pathlib import Path

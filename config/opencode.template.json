@@ -1,10 +1,16 @@
 {
-  "$schema": "https://app.kilo.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
   "share": "disabled",
   "formatter": false,
   "lsp": false,
+  "plugin": ["{encodingPlugin}"],
   "permission": {
+    "edit": "ask",
+    "apply_patch": "deny",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "codesearch": "deny",
     "bash": {
       "*": "ask",
       "Get-ChildItem *": "allow",

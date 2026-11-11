@@ -1,21 +1,27 @@
 # 작업 원칙
 
 - 요청받은 작업에 집중하고, 변경 후 검증한 사실만 보고한다.
-- 저장소 이름은 `kilo-kit`다. 사용자의 명시적 요청 없이 변경하지 않는다.
-- 이 저장소는 Kilo CLI(`kilo.exe`), 빌드센터 MCP·Word MCP(word-mcp-live, 동봉 Python)·Windows-MCP, rg·fd만 배포한다. Word MCP 패키지는 mcp 2가 필요해 `runtime\word-mcp\`에 따로 두고, 빌드센터의 `config/redis/requirements.lock`과 합치지 않는다. Windows-MCP는 Python 3.13 호환 버전 0.8.5를 `config/windows/requirements.lock`에 고정하고 `runtime\windows-mcp\`에 분리한다. UI 테스트용 도구만 stdio로 제공하고 텔레메트리·업데이트 확인을 끈다. 캡처·조작은 모두 승인 대상이며 실제 Windows UI 검증 없이 동작 성공으로 보고하지 않는다. 확장·Edge MCP·언어 서버(LSP)·SVN·Redis 실행 파일은 다시 넣지 않는다.
-- `grep`이나 `rg`로 검색할 때는 기본적으로 모든 깊이의 점(`.`)으로 시작하는 디렉터리를 제외한다. `grep` 재귀 검색에는 `--exclude-dir='.*'`를 사용하고, `rg`에서는 기본 숨김 경로 제외 동작을 유지하며 `--hidden`이나 `-uu` 등으로 해제하지 않는다. 숨김 디렉터리 검색은 사용자가 명시적으로 요청한 경우에만 수행한다.
+- 배포 이름은 `opencode-kit`다. 로컬 폴더와 GitHub 저장소는 아직 `kilo-kit`이며 별도 승인 없이 이동·원격 리네임·커밋·푸시하지 않는다.
+- OpenCode CLI, 인코딩 보존 custom tools, 빌드센터 MCP·Word MCP·Windows-MCP, rg·fd를 배포한다. VS Code 확장·Edge MCP·LSP·SVN·Redis 실행 파일은 포함하지 않는다.
+- Word MCP(mcp 2)는 `runtime/word-mcp/`, Windows-MCP 0.8.5(Python 3.13 호환)는 `runtime/windows-mcp/`로 의존성을 분리한다. 기존 빌드센터 패키지와 합치지 않는다.
+- `grep`·`rg` 검색은 기본적으로 모든 깊이의 숨김 디렉터리를 제외한다. 숨김 경로 검색은 사용자의 명시적 승인 범위에서만 한다. 배포 통합을 위한 `.github/` 작업은 승인되었다.
 
 ## 반드시 지킬 배포 조건
 
-**사용자는 GitHub에서 완성된 배포 ZIP 하나를 내려받아 폐쇄망 Windows 개발 PC로 옮기고, 압축을 풀어 `setup.ps1`에서 사내 모델 프로바이더(API 주소·키)만 등록하면 `kilo`를 실행할 수 있어야 한다.**
+**완성 ZIP 하나를 폐쇄망 Windows PC로 옮기고, 압축을 풀어 `setup.ps1`에서 사내 모델 API를 등록하면 어느 폴더에서든 `opencode`를 실행할 수 있어야 한다.**
 
-- GitHub Actions가 실행 파일과 의존성을 준비하고 완성된 ZIP을 만든다. 배포 ZIP에는 Kilo CLI(`bin\kilo\` 전체: `kilo.exe`, tree-sitter WASM, console 리소스), rg·fd(`bin\`), 빌드센터 MCP 코드, Word MCP 런처(`mcp\word\`)와 패키지(`runtime\word-mcp\`), Windows-MCP 런처(`mcp\windows\`)와 패키지(`runtime\windows-mcp\`), MCP용 Python 런타임과 패키지, 설정 템플릿과 라이선스를 포함한다.
-- 대상 PC에서 인터넷 다운로드, npm/pip 설치, Node.js/Python 설치, 수동 실행 파일 수집, 배포물 빌드를 요구하지 않는다. Kilo가 실행 중에 외부로 나가는 기능(models.dev 목록, 자동 업데이트, 텔레메트리, LSP·ripgrep 다운로드, 공유)은 `setup.ps1`의 시스템 변수와 설정으로 끈다.
-- 사용자 절차는 ZIP 다운로드 → 폐쇄망 반입 → 압축 해제 → `setup.ps1` 1회 실행(사내 API 주소·키 입력 또는 `config\models.json`) → 어느 폴더에서나 `kilo` 실행으로 유지한다. 사내 모델 API 연결은 필요하다.
-- `setup.ps1`이 사내 API의 `/models`에서 모델을 찾아 `config\models.json`을 완성하고, Kilo 설정을 `%USERPROFILE%\.config\kilo\`(Kilo 표준 전역 설정 위치)에 설치한다. 같은 이름의 기존 파일은 `.bak`으로 백업한 뒤 바꾼다. 사용자 변경용 `kilo.jsonc`는 덮어쓰지 않는다.
-- README에서 바로 받을 완성 ZIP의 위치를 안내한다. GitHub의 소스 코드 Download ZIP을 실행 가능한 배포본으로 안내하지 않는다.
-- `scripts/`에는 `setup.ps1`만 둔다. 이 파일이 필수 파일 확인, 프로바이더 등록·모델 탐색, Kilo 설정 설치와 1회 설정(시스템 PATH·변수)을 처리한다. 루트 `setup.ps1`은 이 파일을 호출하는 바로가기다. 사용자 환경 변수는 로그인 때 초기화되는 PC가 있으므로 Kilo 실행에 필요한 PATH·변수(API 키 포함)는 시스템 변수에 둔다.
-- 사용자용 build-offline, 환경 설정, 실행, 검증 스크립트를 다시 분리해서 추가하지 않는다. 다운로드·패키징 자동화는 GitHub Actions에서 처리한다.
-- 단순화를 이유로 자동 배포를 제거하거나 실행 파일 준비 책임을 사용자에게 넘기지 않는다.
-- 테스트는 최소로 둔다. CI는 ZIP을 만들고 다른 경로에 풀어 `setup.ps1 -Check`와 `kilo --version`만 확인한다. CI 미실행 상태를 성공으로 보고하지 않는다.
-- 배포 ZIP에 실제 API 키, `config/models.json`, 빌드센터 실제 매핑(`server_IP_mappings.json`, `owners.json`), 세션·캐시를 포함하지 않는다.
+- GitHub Actions가 고정 버전·해시의 OpenCode·Python·rg·fd, MCP 패키지, custom tool 의존성을 준비한다. 대상 PC에 Node.js·Python 설치, npm/pip 설치, 다운로드·빌드를 요구하지 않는다.
+- 배포 이름은 `opencode-kit-win-x64.zip`. README는 실제 배포 Release를 안내하며 소스 Download ZIP을 설치용으로 안내하지 않는다. 새 배포를 만들기 전에는 새 이름의 다운로드 링크가 유효하다고 주장하지 않는다.
+- 모델 목록 조회·자동 업데이트·기본 플러그인·LSP 다운로드·공유를 비활성화하고 rg를 동봉한다. `bin/opencode.cmd`는 승인된 유일한 실행 진입점 예외로, npm offline을 해당 프로세스에만 적용한다. 시스템 전체 npm 설정은 바꾸지 않는다.
+- `scripts/`에는 `setup.ps1`만 둔다. 루트 `setup.ps1`은 바로가기다. 필수 파일 확인·프로바이더 등록·모델 탐색·설정 설치·시스템 PATH/환경 변수 설정을 이 파일에서 처리한다.
+- 생성 설정은 `%USERPROFILE%/.config/opencode/opencode.json`, 사용자 설정은 `opencode.jsonc`다. 교체 파일은 `.bak`으로 백업하고 사용자 jsonc는 덮어쓰지 않는다. 기존 Kilo 설정·세션은 삭제하지 않는다. 플러그인은 runtime/opencode-tools의 고정 의존성을 사용한다. OpenCode 초기화를 위한 의존성 복사는 kit 소유 마커가 있거나 비어 있는 설정 폴더에만 하며, 비관리 기존 설치는 호환성을 확인하거나 중단한다.
+- API 키는 시스템 환경 변수에 보관한다. 실제 API 키·`config/models.json`·Redis 실제 매핑·세션·캐시는 ZIP에 넣지 않는다.
+- 자동 배포를 제거하거나 실행 파일 준비 책임을 사용자에게 넘기지 않는다.
+
+## 인코딩 및 검증
+
+- OpenCode 본체는 포크하지 않는다. 플러그인의 동일 이름 `read/edit/write`와 별칭 도구가 동봉 Python의 엄격한 인코딩 I/O를 사용한다.
+- 원본 파일을 임시 UTF-8로 바꾸지 않는다. 명시 규칙 → BOM/유효 UTF-8으로 결정하며, 미지정 비 UTF-8은 거부한다. 변환 손실·모호한 치환·승인 중 파일 변경은 쓰기 전에 중단한다.
+- 승인·외부 디렉터리 확인을 우회하지 않는다. `apply_patch`는 차단한다. 셸 및 별도 플러그인은 샌드박스가 아니므로 파일 쓰기 우회를 허용하지 않도록 안내한다.
+- 인코딩·도구 승인·오프라인 초기화의 회귀 테스트는 허용한다. CI는 테스트 후 ZIP을 만들고 다른 경로에 풀어 `setup.ps1 -Check`·OpenCode 버전·설정/도구 로딩을 검사한다. 실제 API·UI 검증과 구분하며 미실행 CI를 성공으로 보고하지 않는다.
+- Windows UI MCP는 stdio와 UI 테스트용 도구만 노출한다. 텔레메트리·업데이트 확인을 끄고 캡처·조작 모두 승인받는다. 실제 Windows UI 검증 없이 동작 성공으로 보고하지 않는다.

@@ -12,6 +12,8 @@
 # GitHub Actions가 준비하는 실행 파일·런타임·패키지
 /bin/
 /runtime/
+/tools/encoding/node_modules/
+*.opencode-kit.lock
 /mcp/edge/node_modules/
 /.cache/
 /dist/

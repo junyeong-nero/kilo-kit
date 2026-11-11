@@ -1,137 +1,92 @@
 # 설치와 설정
 
-배포 ZIP에는 실행에 필요한 파일이 들어 있습니다. 폐쇄망 PC에서는 압축을 풀고 `setup.ps1`을 한 번 실행하면 됩니다. Node.js·Python·Git을 별도로 설치할 필요는 없습니다.
+배포본은 Windows x64용입니다. 기존 배포 대상은 Windows 10 1903 이상/Windows 11이며, 새 OpenCode 전환본은 대상 OS에서 별도 실기 확인이 필요합니다. Node.js·Python·npm/pip를 대상 PC에 설치하지 않습니다. 사내 OpenAI 호환 API와 셋업 시 시스템 환경 변수를 등록할 관리자 권한은 필요합니다.
 
-## 시작하기 전에
+## 설치
 
-다음을 준비해 주세요.
+1. [Releases](https://github.com/junyeong-nero/kilo-kit/releases)에서 `opencode-kit-win-x64.zip`이 첨부된 릴리스를 받습니다. 해당 파일이 없다면 아직 미배포 상태입니다. Source code (zip)은 설치용이 아닙니다.
+2. 함께 제공되는 `.sha256`과 `Get-FileHash .\opencode-kit-win-x64.zip -Algorithm SHA256` 결과를 비교합니다.
+3. ZIP을 반입해 예를 들어 `D:\opencode-kit`에 풉니다.
+4. PowerShell에서 실행합니다.
 
-- **Windows 10 1903 이상 또는 Windows 11 (x64)**
-- **사내 모델 API 주소와 API 키** — vLLM 같은 OpenAI 호환 API를 사용합니다. 모델 ID는 몰라도 됩니다. 셋업이 API에서 모델 목록을 가져옵니다.
-- **PC의 관리자 권한** — 시스템 환경 변수를 등록할 때 필요합니다.
+   ```powershell
+   cd D:\opencode-kit
+   Set-ExecutionPolicy -Scope Process Bypass -Force
+   .\setup.ps1
+   ```
 
-## 1. 배포 ZIP 받기
+5. API 주소·키·기본 모델을 입력합니다. 관리자 승인 후 터미널 프로그램을 완전히 종료하고 다시 엽니다.
+6. 프로젝트 폴더에서 `opencode`를 실행합니다. `opencode mcp list`로 MCP 상태를 확인할 수 있습니다.
 
-[Releases](https://github.com/junyeong-nero/kilo-kit/releases)에서 **kilo-kit-win-x64.zip**을 받습니다. **Source code (zip)**은 실행 파일이 없는 소스 코드이므로 설치용으로 사용할 수 없습니다.
+설치 폴더를 이동했다면 새 위치에서 셋업을 다시 실행하세요. 실행은 `bin\opencode.cmd`를 거치는 `opencode` 명령으로 해야 합니다. 내부 EXE를 직접 실행하면 프로세스 전용 npm offline 설정을 우회합니다.
 
-파일이 온전히 받아졌는지 확인하려면 함께 제공되는 `.sha256` 파일도 받으세요. 다음 명령으로 나온 해시를 `.sha256` 파일의 값과 비교하면 됩니다.
-
-```powershell
-Get-FileHash .\kilo-kit-win-x64.zip -Algorithm SHA256
-```
-
-ZIP을 폐쇄망 PC로 옮겨 원하는 위치에 압축을 풉니다. `D:\`에 풀었다면 `D:\kilo-kit\setup.ps1`이 있는지 확인하세요. 설치 후 폴더를 다른 곳으로 옮겼다면, 새 위치에서 `setup.ps1`을 다시 실행해야 합니다.
-
-## 2. 셋업 실행하기
-
-PowerShell을 열고 다음 명령을 실행합니다. 관리자 권한 확인 창이 뜨면 **예**를 누르세요.
-
-```powershell
-cd D:\kilo-kit
-Set-ExecutionPolicy -Scope Process Bypass -Force
-.\setup.ps1
-```
-
-셋업에서 안내하는 순서대로 입력합니다.
-
-1. **사내 API 주소** — 예: `http://10.0.0.1:8000/v1`. `/v1` 없이 입력하면 셋업이 `/v1`을 붙인 주소도 시도합니다.
-2. **API 키** — 입력한 값은 화면에 표시되지 않습니다. 인증이 필요 없는 API라면 Enter를 누르세요.
-3. **기본 모델 번호** — 모델이 여러 개일 때 사용할 모델을 고릅니다.
-
-빌드센터 Redis 계정과 비밀번호는 묻지 않습니다. 인증 없이 접속하는 환경에서는 별도로 설정할 필요가 없습니다. 인증이 필요한 경우에만 아래 실행 옵션으로 지정하세요. 기존에 등록된 Redis 인증 환경 변수는 그대로 유지됩니다.
-
-`Setup complete.`가 표시되면 설정이 끝난 것입니다. Windows Terminal이나 VS Code 등 사용 중인 터미널 프로그램을 **완전히 닫고 다시 연 뒤**, 어느 폴더에서든 `kilo`를 실행해 보세요.
-
-### 설정을 바꾸고 싶다면
-
-사내 API에 모델이 추가되거나 바뀌었을 때는 `setup.ps1`을 다시 실행하면 됩니다. 저장된 주소와 키로 모델 목록을 새로 가져와 설정을 갱신합니다.
-
-주소·키·기본 모델을 다시 선택하려면 다음처럼 실행하세요.
-
-```powershell
-.\setup.ps1 -Reconfigure
-```
-
-필요한 값을 실행 옵션으로 넘길 수도 있습니다.
+## 셋업 옵션
 
 | 옵션 | 설명 |
 |---|---|
-| `-BaseUrl <주소> -ApiKey <키> -Model <ID>` | 주소·키·모델을 직접 지정합니다. `-ApiKey`로 입력한 키는 명령 기록에 남으므로, 가능하면 셋업의 숨김 입력창을 사용하세요. |
-| `-RedisPassword`, `-RedisUsername` | 인증이 필요한 환경에서만 빌드센터 Redis 인증 정보를 지정합니다. 비밀번호를 옵션으로 입력하면 명령 기록에 남을 수 있습니다. |
-| `-Reconfigure` | 주소·키·기본 모델을 다시 설정합니다. 빌드센터 인증 정보는 묻지 않습니다. |
-| `-NonInteractive` | 입력을 묻지 않고 실행합니다. 자동화용 옵션이며, 필요한 값이 없으면 오류로 종료됩니다. |
-| `-Check` | 설정을 바꾸지 않고 배포 파일이 갖춰져 있는지만 확인합니다. |
+| `-BaseUrl`, `-ApiKey`, `-Model` | 프로바이더와 모델 직접 지정. 키를 인자로 주면 명령 기록에 남으므로 숨김 입력을 권장 |
+| `-RedisPassword`, `-RedisUsername` | 필요할 때만 빌드센터 인증 등록. 입력하지 않으면 기존 환경 변수 유지 |
+| `-Reconfigure` | 주소·키·기본 모델 다시 선택 |
+| `-NonInteractive` | 대화형 입력 없이 실행. 필수 값이 없으면 오류 |
+| `-Check` | 필수 배포 파일이 있는지만 확인. 설정·환경 변경 없음 |
 
-## 설정 파일은 어디에 있나요?
+`/models`로 목록을 조회합니다. 이미 `config/models.json`에 등록된 모델이 있으면 API 조회 실패 시 경고 후 그 목록을 사용할 수 있습니다. 직접 지정한 contextWindow·maxTokens·name·imageInput은 유지합니다.
 
-| 위치 | 용도 |
+## 설정 위치
+
+| 위치 | 내용 |
 |---|---|
-| `<배포 폴더>\config\models.json` | 프로바이더 주소, API 키를 저장한 환경 변수 이름, 모델 목록과 기본 모델을 담습니다. 셋업이 만들고 갱신하며, 직접 수정한 `contextWindow`·`maxTokens`·`name`·`imageInput`은 다음 실행에서도 유지합니다. |
-| `%USERPROFILE%\.config\kilo\kilo.json` | 셋업이 실행할 때마다 다시 만드는 Kilo 설정입니다. 개인 설정은 이 파일 대신 `kilo.jsonc`에 작성하세요. |
-| `%USERPROFILE%\.config\kilo\kilo.jsonc` | 개인 설정을 넣는 파일입니다. `kilo.json`보다 나중에 읽혀 우선 적용되며, 셋업이 덮어쓰지 않습니다. |
-| `%USERPROFILE%\.config\kilo\AGENTS.md` | 모든 프로젝트에 적용되는 도구 사용 규칙입니다. 배포본의 `config\AGENTS.md`를 복사한 파일입니다. |
-| `<배포 폴더>\config\redis\` | 빌드센터 프로젝트별 Redis IP와 담당자 매핑을 두는 곳입니다. [빌드센터 MCP 안내](../mcp/build-center/README.md)를 참고하세요. |
+| `<배포 폴더>\config\models.json` | 사내 API 주소·모델 목록·API 키 환경 변수 이름. 실제 키는 저장하지 않음 |
+| `%USERPROFILE%\.config\opencode\opencode.json` | 셋업이 생성하는 모델·MCP·권한·인코딩 플러그인 설정 |
+| `%USERPROFILE%\.config\opencode\opencode.jsonc` | 사용자 설정. 셋업이 덮어쓰지 않으며 json보다 우선 |
+| `%USERPROFILE%\.config\opencode\AGENTS.md` | kit 도구 사용 규칙 |
+| `%USERPROFILE%\.config\opencode\node_modules` 등 | 초기 npm 설치를 피하기 위해 복사하는 동봉 의존성 |
+| `<배포 폴더>\runtime\opencode-tools\` | 인코딩 플러그인·Python helper·고정 npm 의존성 |
+| `<프로젝트 루트>\encoding-rules.json` | 레거시 파일 인코딩 명시. [인코딩 안내](encoding.md) |
 
-셋업이 기존 설정 파일을 교체할 때는 `.bak`으로 백업합니다.
+XDG_CONFIG_HOME/XDG_CACHE_HOME이 설정되어 있으면 해당 위치를 따릅니다. 기존 파일 교체 시 `.bak`으로 백업합니다. 사용자 jsonc의 provider·plugin·permission·MCP 설정이 kit 설정을 변경할 수 있으니 경고를 확인하세요.
 
-**API 키는 `kilo.json`에 저장하지 않습니다.** 기본적으로 시스템 환경 변수 `CORP_LLM_API_KEY`에 저장하고 여기서 읽습니다. 시스템 환경 변수는 이 PC의 다른 사용자도 읽을 수 있다는 점에 유의하세요.
+OpenCode는 기본 프로필 외에 기존 `~/.opencode`도 검색하므로, 해당 폴더가 있으면 셋업에서 초기 의존성을 확인합니다. 기존 패키지 설치가 정확한 동봉 버전과 호환되면 유지하고, 충돌하면 무단으로 덮어쓰지 않습니다. 기존 패키지 설치를 백업·분리하거나 깨끗한 XDG_CONFIG_HOME을 선택해야 합니다. 홈의 `.opencode`가 충돌 원인이라면 그 폴더도 별도 확인하세요.
 
-## 사용하면서 알아 둘 점
+kit가 소유한 의존성 디렉터리는 `opencode-kit-dependencies.json`으로 표시합니다. 그 디렉터리의 npm 패키지를 임의 변경하면 재셋업에서 덮어쓸 수 있으므로 별도 설치와 섞지 마세요.
 
-### 이미지 붙여넣기
+## Kilo에서 전환
 
-Qwen3.5-397B는 셋업에서 이미지 입력을 지원하는 모델로 자동 등록합니다. 모델 ID가 `Qwen3.5-397B`이거나 `Qwen/Qwen3.5-397B-A17B`처럼 제공자 이름이나 변형 접미사가 붙은 경우도 인식합니다. 다른 이름으로 배포된 모델은 `config\models.json`의 해당 모델 항목에 `"imageInput": true`를 추가하고 셋업을 다시 실행하세요. 이미지 입력을 끄려면 `false`로 지정하면 됩니다. 직접 지정한 값은 자동 인식보다 우선합니다.
+- 기존 Kilo 설정·인증·세션은 자동 이동하거나 삭제하지 않습니다. 대화 이력 호환성도 가정하지 않습니다.
+- 기존 배포의 `config/models.json`, Redis 실제 매핑을 새 배포의 같은 위치로 복사한 뒤 셋업하면 사내 정보를 재사용할 수 있습니다. 키는 기존 시스템 변수를 사용합니다.
+- `CORP_LLM_API_KEY`·Redis 인증 변수는 두 프로그램에서 공유할 수 있으므로 무조건 삭제하지 않습니다.
+- 새 PATH는 `bin`입니다. 이전 Kilo PATH·`KILO_*` 변수는 롤백을 위해 보존합니다. 더 이상 쓰지 않을 때 사용자가 정리하세요.
+- GitHub 저장소·로컬 폴더 리네임과 새 릴리스 게시 여부는 별도로 확인하세요.
 
-셋업은 이 값을 Kilo의 `attachment`와 `modalities` 설정에 반영합니다. 기존 버전에서 업그레이드했다면 새 배포본의 `setup.ps1`을 실행한 뒤 Kilo를 다시 시작하세요.
+## 이미지와 UI 테스트
 
-1. `Win+Shift+S`로 화면을 캡처합니다.
-2. Kilo 입력창에서 **`Ctrl+V`**를 누릅니다.
-3. `[Image 1]`이 표시되면 질문을 입력하고 전송합니다.
+Qwen3.5-397B 계열은 이미지 입력 가능 모델로 자동 등록합니다. 다른 모델은 `config/models.json`에 `"imageInput": true`를 지정하고 셋업을 다시 실행하세요. 모델뿐 아니라 사내 API도 이미지 입력을 처리해야 합니다.
 
-이미지가 첨부되지 않는다면 터미널의 단축키 설정이나 Windows 클립보드 접근을 확인하세요. 첨부는 되지만 전송이 실패한다면 모델 설정과 사내 API의 이미지 요청 지원 여부를 확인해야 합니다. 모델 자체의 이미지 지원과 별개로, API 서버도 이미지 요청을 처리하도록 구성되어 있어야 합니다.
+Windows-MCP는 UI 트리와 이미지 결과를 제공합니다. 무관한 창을 닫고 테스트 앱이 있는 모니터의 캡처부터 확인하세요. 동봉 0.8.5는 특정 사각형 영역만 캡처하는 인자를 지원하지 않습니다. Windows 로컬의 로그인된 잠기지 않은 세션에서 사용하며, AI와 마우스·키보드를 동시에 사용하지 마세요. [Windows-MCP 안내](../mcp/windows/README.md).
 
-### Windows 앱 조작과 스크린샷
+## 외부 통신과 초기 의존성
 
-Windows-MCP는 동봉된 Python으로 실행되며 셋업이 자동 등록합니다. `kilo mcp list`에서 `windows` 연결을 확인한 다음, 무관한 창을 닫고 테스트 앱의 UI 조회와 해당 모니터의 스크린샷부터 요청하세요. 동봉된 0.8.5는 창 영역만 직접 캡처하는 인자를 지원하지 않습니다. 캡처·입력 모두 승인이 필요합니다. 이미지 확인에는 위의 모델 이미지 입력 설정과 사내 API 지원이 필요합니다.
+- 진입점이 OpenCode 업데이트·모델 목록 조회·기본 플러그인·LSP 다운로드를 끄고, 상속된 OTLP 전송 설정을 비웁니다.
+- 설정은 share/formatter/LSP를 끄고 웹 검색 도구를 거부합니다. rg는 PATH와 OpenCode 캐시에 동봉합니다.
+- npm offline은 OpenCode 프로세스에만 적용합니다. 초기 필수 패키지는 CI에서 준비해 복사합니다. 사용자의 일반 npm 설정은 변경하지 않습니다.
+- 프로젝트 `.opencode`에 추가 패키지나 원격 플러그인이 있다면 자동 설치가 실패할 수 있습니다. 그것까지 임의로 온라인 설치하지 않습니다. 필요한 추가 의존성은 별도의 사내 반입 검토가 필요합니다.
+- 원격 MCP, 셸 명령, 사용자 플러그인, 외부 URL 지시까지 차단하는 샌드박스는 아닙니다. 업무 보안 정책과 네트워크 통제를 함께 사용하세요.
+- 모델 API, Redis 등 업무용 사내 서비스 연결은 필요합니다. MCP 캡처·UI 텍스트도 모델 API로 전달되는 업무 데이터입니다.
 
-Windows 로컬의 로그인된 잠기지 않은 세션에서 사용하고 AI 조작 중에는 마우스·키보드를 동시에 쓰지 마세요. 캡처와 UI 텍스트가 모델 API로 전달되므로 업무 보안 정책을 따라야 합니다. 제공 도구·비활성화 방법·MFC/WPF 검증 순서는 [Windows-MCP 안내](../mcp/windows/README.md)를 참고하세요.
+## 문제 해결
 
-### 명령 실행 승인
-
-셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word MCP는 읽기 도구만 승인 없이 실행하고, 문서를 바꾸는 도구는 승인을 요청합니다([Word MCP 안내](../mcp/word/README.md)). Windows-MCP는 스크린샷을 포함한 모든 도구에 승인을 요청합니다. 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
-
-### 언어 서버와 파일 인코딩
-
-언어 서버(LSP)는 배포본에 포함하지 않으며, 설정에서도 `"lsp": false`로 꺼 둡니다.
-
-Kilo의 편집 도구는 파일 인코딩을 자동으로 판별합니다. 다만 한글이 적은 짧은 CP949 파일은 잘못 판별해 한글이 깨질 수 있습니다. 중요한 레거시 파일을 수정했다면 `git diff`나 `svn diff`로 변경 내용을 확인하세요.
-
-### 외부 통신
-
-Windows-MCP 텔레메트리와 FastMCP 업데이트 확인은 Windows-MCP 런처에서 끕니다. Windows-MCP는 stdio로만 연결하며 HTTP 포트를 열지 않습니다.
-
-models.dev 모델 목록 조회, 자동 업데이트, 텔레메트리, LSP·ripgrep 다운로드, 세션 공유는 셋업이 등록하는 시스템 변수와 `kilo.json` 설정으로 끕니다. 모델 응답을 받으려면 사내 API 연결은 필요합니다.
-
-## 문제가 생겼다면
-
-| 증상 | 확인할 내용 |
+| 증상 | 확인 |
 |---|---|
-| “스크립트를 실행할 수 없습니다” | 같은 PowerShell 창에서 `Set-ExecutionPolicy -Scope Process Bypass -Force`를 먼저 실행하세요. 그룹 정책으로 제한된 경우에는 IT 담당자에게 문의해야 합니다. |
-| `Missing bundle file` / `Invalid executable` | 소스 ZIP을 받았거나 압축이 제대로 풀리지 않았을 수 있습니다. Releases의 **kilo-kit-win-x64.zip**을 받아 다시 풀어 주세요. |
-| `Could not list models` / `rejected the API key` | API 주소·키·네트워크 연결을 확인하세요. `/models` 요청이 응답하는지도 확인하고, 인증이 필요한 API라면 요청에 인증 헤더를 포함해야 합니다. |
-| `Administrator rights are required` | 시스템 환경 변수 등록에 필요한 권한을 얻지 못했습니다. 셋업을 다시 실행하고 관리자 권한 확인 창에서 **예**를 누르세요. |
-| `kilo`를 찾을 수 없음 | 새 PATH가 적용되도록 터미널 프로그램을 완전히 닫고 다시 여세요. IDE 안의 터미널이라면 IDE도 다시 시작해야 합니다. |
-| 다른 모델이나 프로바이더가 사용됨 | 셋업 경고에 나온 `kilo.jsonc`·`opencode.json` 등의 파일이 설정을 덮어쓰고 있는지 확인하세요. 셋업 설정을 사용하려면 해당 파일의 `model`·`provider`·`enabled_providers` 항목을 정리하세요. |
-| Word 도구에서 `Microsoft Word is not running` / `is not open in Word` | Word MCP는 Word에 열린 문서에만 동작합니다. 파일의 절대 경로를 알려 주고 열어 달라고 요청하면 `word_live_open`으로 Word에서 엽니다. 직접 열어도 됩니다. |
-| Windows MCP 연결·캡처 오류 | `kilo mcp list`로 상태를 확인하고 Windows 로컬의 로그인된 세션인지 확인하세요. 이미지 전송만 실패하면 모델의 `imageInput` 설정과 API 이미지 지원을 확인하세요. [Windows-MCP 안내](../mcp/windows/README.md) 참고. |
-| 빌드센터 도구 오류 | `config\redis\server_IP_mappings.json`과 Redis 인증 변수를 확인하세요. `kilo mcp list`로 MCP 상태를 확인할 수 있습니다. |
+| `Missing bundle file` | 소스 ZIP이 아닌 완성 배포 ZIP인지 확인 |
+| `Existing npm dependencies ... not managed` | 기존 OpenCode 패키지를 덮어쓰지 않도록 중단한 것. 백업·분리 후 재시도 |
+| `opencode`를 찾지 못함 | 터미널/IDE를 완전히 종료 후 재실행, PATH의 새 bin 확인 |
+| 인코딩 오류 | [encoding-rules.json](encoding.md) 설정. 기본 도구·셸로 우회 금지 |
+| 모델/도구가 예상과 다름 | 사용자·프로젝트 설정, OPENCODE_CONFIG* 변수와 추가 플러그인의 덮어쓰기 확인 |
+| API 인증·조회 실패 | 주소, 키, `/models` 응답 확인 |
+| MCP 연결·캡처 실패 | `opencode mcp list`, Windows 세션·권한, 사내 API 이미지 지원 확인 |
 
-## 등록한 설정 지우기
+CI는 인코딩 테스트와 초기 로딩을 검사하지만 사내 API 추론·실제 MFC/WPF/Word 작업은 검증하지 않습니다.
 
-더 이상 사용하지 않는다면 **시스템 환경 변수 편집**에서 다음 항목을 제거하세요. 다른 프로그램에서도 사용 중인 변수는 지우기 전에 확인해 주세요.
+## 제거
 
-- Path의 `<배포 폴더>\bin\kilo`, `<배포 폴더>\bin`
-- `KILO_KIT_HOME`, 셋업이 등록한 `KILO_DISABLE_*`, `KILO_TELEMETRY_LEVEL`
-- `CORP_LLM_API_KEY`, `REDISCLI_AUTH`, `HSC_REDIS_USERNAME`
-
-마지막으로 `%USERPROFILE%\.config\kilo\`의 `kilo.json`과 `AGENTS.md`를 삭제합니다. 셋업 이전 설정으로 돌아가려면 `.bak` 백업 파일을 확인하세요.
+시스템 PATH의 이 배포본 `bin`, `OPENCODE_KIT_HOME`을 제거합니다. 다른 도구도 사용하는 API·Redis 변수는 삭제하지 마세요. OpenCode 설정은 `.bak`을 확인해 복원하고, kit 소유 의존성인지 확인한 뒤 제거합니다. 기존 Kilo 설정은 별도로 남아 있습니다.

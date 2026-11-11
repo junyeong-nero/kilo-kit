@@ -1,12 +1,12 @@
 {
   "platform": "win-x64",
   "artifacts": {
-    "kilo": {
-      "version": "7.8.18",
-      "url": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.18/kilo-windows-x64.zip",
-      "sha256": "4d13c566a3e7d91ceb6986ea037a4eee6aa145918a75b38f8208034c07e74780",
+    "opencode": {
+      "version": "1.19.5",
+      "url": "https://github.com/anomalyco/opencode/releases/download/v1.19.5/opencode-windows-x64.zip",
+      "sha256": "09a6e693157f0887e504f2cf4357a8cbddc5ead5d0dffb9a269dcc47c48640f5",
       "prefix": "",
-      "destination": "bin/kilo"
+      "destination": "bin/opencode"
     },
     "python": {
       "version": "3.13.16",

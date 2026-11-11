@@ -1,7 +1,7 @@
-# One-time setup so `kilo` runs from any folder with the internal model API and the bundled MCP servers.
-#   1. Register the provider (API base URL + key) and complete config\models.json from the API's /models list.
-#   2. Install the Kilo config into %USERPROFILE%\.config\kilo (kilo.json, AGENTS.md) and ripgrep into Kilo's cache.
-#   3. Set machine PATH (kilo, rg, fd) and variables (offline switches, API key, build center Redis credentials).
+# One-time setup for OpenCode, encoding-safe tools and bundled MCP servers.
+#   1. Register the provider and complete config\models.json from the API's /models list.
+#   2. Install OpenCode settings and prebuilt dependencies without npm on the target PC.
+#   3. Set machine PATH and variables. npm offline is process-local in bin\opencode.cmd.
 # Re-run after moving the bundle folder, or with -Reconfigure to change the provider.
 # Keep this file ASCII: Windows PowerShell 5.1 reads BOM-less scripts in the system code page.
 param(
@@ -33,10 +33,12 @@ Remove-TypeData -TypeName System.Array -ErrorAction SilentlyContinue
 $BundleRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $configDir = Join-Path $BundleRoot 'config'
 $python = Join-Path $BundleRoot 'runtime\python\python.exe'
-$kiloExe = Join-Path $BundleRoot 'bin\kilo\kilo.exe'
+$opencodeCmd = Join-Path $BundleRoot 'bin\opencode.cmd'
 
-$required = @('bin\kilo\kilo.exe', 'bin\kilo\kilo-sandbox-mutation-worker.js', 'bin\kilo\tree-sitter\tree-sitter.wasm',
-    'bin\kilo\tree-sitter\tree-sitter-cpp.wasm', 'bin\kilo\tree-sitter\tree-sitter-c_sharp.wasm', 'bin\rg.exe',
+$required = @('bin\opencode\opencode.exe', 'bin\opencode.cmd', 'bin\rg.exe',
+    'runtime\opencode-tools\index.js', 'runtime\opencode-tools\file_io.py',
+    'runtime\opencode-tools\package.json', 'runtime\opencode-tools\package-lock.json',
+    'runtime\opencode-tools\node_modules\@opencode-ai\plugin\dist\index.js',
     'runtime\python\python.exe', 'runtime\python\python313.dll', 'runtime\python\python313.zip', 'runtime\python\python313._pth',
     'runtime\python\Lib\site-packages\redis\__init__.py', 'runtime\python\Lib\site-packages\mcp\__init__.py',
     'runtime\python\Lib\site-packages\tzdata\__init__.py', 'bin\fd.exe',
@@ -45,9 +47,9 @@ $required = @('bin\kilo\kilo.exe', 'bin\kilo\kilo-sandbox-mutation-worker.js', '
     'runtime\windows-mcp\win32com\__init__.py', 'runtime\windows-mcp\PIL\Image.py',
     'mcp\build-center\main.py', 'mcp\build-center\service.py', 'mcp\word\word_mcp.py',
     'mcp\windows\windows_mcp_launcher.py',
-    'config\kilo.template.json', 'config\models.example.json', 'config\AGENTS.md',
+    'config\opencode.template.json', 'config\models.example.json', 'config\AGENTS.md',
     'config\redis\settings.json', 'config\redis\server_IP_mappings.example.json', 'config\redis\owners.example.json',
-    'third_party\kilo\LICENSE', 'third_party\python\PYTHON-LICENSE.txt', 'third_party\ripgrep\LICENSE-MIT', 'third_party\fd\LICENSE-MIT')
+    'third_party\opencode\LICENSE', 'third_party\python\PYTHON-LICENSE.txt', 'third_party\ripgrep\LICENSE-MIT', 'third_party\fd\LICENSE-MIT')
 foreach ($item in $required) {
     $path = Join-Path $BundleRoot $item
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing bundle file: $item. Use the complete offline release ZIP." }
@@ -60,19 +62,12 @@ if ($Check) {
     return
 }
 
-# Everything kilo needs before it reads its config is machine-wide: some PCs reset user variables at sign-in.
-# These switches keep kilo from reaching the internet (model catalog, updates, telemetry, LSP/ripgrep downloads, sharing).
-# bin holds rg.exe and fd.exe for the shell; bin\kilo holds kilo.exe.
-$pathDirs = { param($root) @('bin\kilo', 'bin') | ForEach-Object { Join-Path $root $_ } }
+# Only bin is on PATH: opencode.cmd applies process-local offline switches before launching the EXE.
+# Existing Kilo settings and PATH entries remain available for rollback.
+$pathDirs = { param($root) @('bin') | ForEach-Object { Join-Path $root $_ } }
 $systemPathDirs = @(& $pathDirs $BundleRoot)
 $machineVars = [ordered]@{
-    KILO_KIT_HOME               = $BundleRoot
-    KILO_DISABLE_AUTOUPDATE     = '1'
-    KILO_DISABLE_MODELS_FETCH   = '1'
-    KILO_DISABLE_LSP_DOWNLOAD   = '1'
-    KILO_DISABLE_SHARE          = '1'
-    KILO_DISABLE_SESSION_INGEST = '1'
-    KILO_TELEMETRY_LEVEL        = 'off'
+    OPENCODE_KIT_HOME = $BundleRoot
 }
 $envKeyPath = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
 function Get-MachinePath {
@@ -95,13 +90,13 @@ function Test-SystemReady([System.Collections.IDictionary]$Secrets) {
     return $true
 }
 function Set-MachineSettings([System.Collections.IDictionary]$Secrets) {
-    $previousHome = [Environment]::GetEnvironmentVariable('KILO_KIT_HOME', 'Machine')
+    $previousHome = [Environment]::GetEnvironmentVariable('OPENCODE_KIT_HOME', 'Machine')
     $envKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey($envKeyPath, $true)
     try {
         $remove = $systemPathDirs + @(if ($previousHome) { & $pathDirs $previousHome })
         $kept = @(([string]$envKey.GetValue('Path', '', 'DoNotExpandEnvironmentNames')).Split(';') |
             Where-Object { $_ -and $remove -notcontains $_.TrimEnd('\') })
-        # The bundled kilo, rg and fd must take precedence over other copies on PATH.
+        # The bundled opencode.cmd, rg and fd must take precedence over other copies on PATH.
         $envKey.SetValue('Path', (($systemPathDirs + $kept) -join ';'), [Microsoft.Win32.RegistryValueKind]::ExpandString)
     } finally { $envKey.Close() }
     # Setting variables through .NET broadcasts the change so newly opened terminals see the new values.
@@ -317,59 +312,93 @@ $completed = [ordered]@{
 Install-File $modelsPath ((ConvertTo-Json -InputObject $completed -Depth 8) + "`n")
 Write-Host "Provider $providerId ($url): $($ids.Count) model(s), default $default"
 
-# 3. Kilo config for the current user, at Kilo's standard global location (%USERPROFILE%\.config\kilo).
-# kilo.json is generated here on every run; kilo.jsonc is the user's own file and is read after it.
+# 3. Standard OpenCode config. Preserve personal JSONC and refuse to overwrite unrelated npm packages.
 $userHome = [Environment]::GetFolderPath('UserProfile')
-$kiloConfigDir = Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $userHome '.config' }) 'kilo'
-$kiloCacheBin = Join-Path $(if ($env:XDG_CACHE_HOME) { $env:XDG_CACHE_HOME } else { Join-Path $userHome '.cache' }) 'kilo\bin'
-$template = Read-Json (Join-Path $configDir 'kilo.template.json')
-$kiloConfig = [ordered]@{}
-foreach ($property in $template.PSObject.Properties) { $kiloConfig[$property.Name] = $property.Value }
+$opencodeConfigDir = Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $userHome '.config' }) 'opencode'
+$opencodeCacheBin = Join-Path $(if ($env:XDG_CACHE_HOME) { $env:XDG_CACHE_HOME } else { Join-Path $userHome '.cache' }) 'opencode\bin'
+$toolRuntime = Join-Path $BundleRoot 'runtime\opencode-tools'
+function Install-OpenCodeDependencies([string]$Directory) {
+    $marker = Join-Path $Directory 'opencode-kit-dependencies.json'
+    $expected = (Read-Json (Join-Path $toolRuntime 'package.json')).dependencies.'@opencode-ai/plugin'
+    $existing = Join-Path $Directory 'node_modules\@opencode-ai\plugin\package.json'
+    if (-not (Test-Path -LiteralPath $marker)) {
+        $occupied = @('package.json', 'package-lock.json', 'node_modules') | Where-Object { Test-Path -LiteralPath (Join-Path $Directory $_) }
+        if ($occupied) {
+            $lockPath = Join-Path $Directory 'package-lock.json'
+            if ((Test-Path -LiteralPath $existing) -and (Test-Path -LiteralPath $lockPath)) {
+                $installed = Read-Json $existing
+                # ConvertFrom-Json in Windows PowerShell 5.1 cannot represent npm's empty root key.
+                # Rename that key in memory only; never rewrite the user's lock file.
+                $lock = ([IO.File]::ReadAllText($lockPath, $utf8) -replace '""\s*:', '"opencodeKitRoot":') | ConvertFrom-Json
+                if ($installed.version -eq $expected -and $lock.packages.opencodeKitRoot.dependencies.'@opencode-ai/plugin' -eq $expected) {
+                    Write-Host "Keeping compatible existing OpenCode dependencies: $Directory"
+                    return
+                }
+            }
+            throw "Existing npm dependencies at $Directory are not managed by opencode-kit. Back up/move that dependency installation or choose a clean XDG_CONFIG_HOME; setup will not overwrite it."
+        }
+    }
+    New-Item -ItemType Directory -Force -Path $Directory | Out-Null
+    Copy-Item -LiteralPath (Join-Path $toolRuntime 'node_modules') -Destination $Directory -Recurse -Force
+    foreach ($name in @('package.json', 'package-lock.json')) {
+        Install-File (Join-Path $Directory $name) ([IO.File]::ReadAllText((Join-Path $toolRuntime $name), $utf8))
+    }
+    Write-Text $marker ((ConvertTo-Json @{ pluginVersion = $expected }) + "`n")
+}
+Install-OpenCodeDependencies $opencodeConfigDir
+# OpenCode also inspects an existing ~/.opencode even when launched outside a project.
+$homeConfig = Join-Path $userHome '.opencode'
+if (Test-Path -LiteralPath $homeConfig -PathType Container) { Install-OpenCodeDependencies $homeConfig }
+$template = Read-Json (Join-Path $configDir 'opencode.template.json')
+$pluginUri = ([Uri](Join-Path $toolRuntime 'index.js')).AbsoluteUri
+$template.plugin = @($template.plugin | ForEach-Object { ([string]$_).Replace('{encodingPlugin}', $pluginUri) })
+$opencodeConfig = [ordered]@{}
+foreach ($property in $template.PSObject.Properties) { $opencodeConfig[$property.Name] = $property.Value }
 foreach ($server in $template.mcp.PSObject.Properties) {
     # Absolute paths: MCP servers start in the user's project folder and must not depend on PATH.
     $server.Value.command = @($server.Value.command | ForEach-Object { ([string]$_).Replace('{bundle}', $BundleRoot) })
 }
-$kiloModels = [ordered]@{}
+$opencodeModels = [ordered]@{}
 foreach ($entry in $models) {
     $inputModalities = @('text')
     if ($entry.imageInput) { $inputModalities += 'image' }
-    $kiloModels[$entry.id] = [ordered]@{
+    $opencodeModels[$entry.id] = [ordered]@{
         name = $entry.name; tool_call = $true; attachment = [bool]$entry.imageInput
         modalities = [ordered]@{ input = $inputModalities; output = @('text') }
         limit = [ordered]@{ context = $entry.contextWindow; output = $entry.maxTokens }
     }
 }
-$kiloConfig['enabled_providers'] = @($providerId)
-$kiloConfig['model'] = "$providerId/$default"
-$kiloConfig['small_model'] = "$providerId/$default"
-$kiloConfig['provider'] = [ordered]@{
+$opencodeConfig['enabled_providers'] = @($providerId)
+$opencodeConfig['model'] = "$providerId/$default"
+$opencodeConfig['small_model'] = "$providerId/$default"
+$opencodeConfig['provider'] = [ordered]@{
     $providerId = [ordered]@{
         npm     = '@ai-sdk/openai-compatible'
         name    = $providerName
         env     = @($keyEnv)
         options = [ordered]@{ baseURL = $url }
-        models  = $kiloModels
+        models  = $opencodeModels
     }
 }
-Install-File (Join-Path $kiloConfigDir 'kilo.json') ((ConvertTo-Json -InputObject $kiloConfig -Depth 16) + "`n")
-Install-File (Join-Path $kiloConfigDir 'AGENTS.md') ([IO.File]::ReadAllText((Join-Path $configDir 'AGENTS.md'), $utf8))
-$userConfig = Join-Path $kiloConfigDir 'kilo.jsonc'
+Install-File (Join-Path $opencodeConfigDir 'opencode.json') ((ConvertTo-Json -InputObject $opencodeConfig -Depth 16) + "`n")
+Install-File (Join-Path $opencodeConfigDir 'AGENTS.md') ([IO.File]::ReadAllText((Join-Path $configDir 'AGENTS.md'), $utf8))
+$userConfig = Join-Path $opencodeConfigDir 'opencode.jsonc'
 if (-not (Test-Path -LiteralPath $userConfig)) {
-    Write-Text $userConfig ("// Personal Kilo settings. kilo-kit setup.ps1 never overwrites this file.`n" +
-        "// Kilo reads it after kilo.json (generated by setup.ps1), so values here win.`n" +
-        "{`n  `"`$schema`": `"https://app.kilo.ai/config.json`"`n}`n")
+    Write-Text $userConfig ("// Personal settings. opencode-kit setup.ps1 never overwrites this file.`n" +
+        "// Values here override opencode.json generated by setup.ps1.`n" +
+        "{`n  `"`$schema`": `"https://opencode.ai/config.json`"`n}`n")
 }
-foreach ($name in @('kilo.jsonc', 'opencode.json', 'opencode.jsonc')) {
-    $file = Join-Path $kiloConfigDir $name
-    if ((Test-Path -LiteralPath $file) -and ([IO.File]::ReadAllText($file, $utf8) -match '"(model|provider|enabled_providers|mcp)"')) {
-        Write-Warning "$file sets model, provider or MCP settings that override the ones setup.ps1 installed."
+foreach ($name in @('opencode.jsonc')) {
+    $file = Join-Path $opencodeConfigDir $name
+    if ((Test-Path -LiteralPath $file) -and ([IO.File]::ReadAllText($file, $utf8) -match '"(model|provider|enabled_providers|mcp|plugin|permission)"')) {
+        Write-Warning "$file contains personal overrides. Verify model, MCP, plugin and permission settings against the kit defaults."
     }
 }
-# On Windows kilo ignores rg on PATH and downloads ripgrep into its cache when missing; the bundle provides it instead.
-$rgTarget = Join-Path $kiloCacheBin 'rg.exe'
+# OpenCode prefers rg on PATH and then its cache. Populate both to avoid a fallback download.
+$rgTarget = Join-Path $opencodeCacheBin 'rg.exe'
 $rgSource = Join-Path $BundleRoot 'bin\rg.exe'
 if (-not (Test-Path -LiteralPath $rgTarget) -or (Get-FileHash -LiteralPath $rgTarget).Hash -ne (Get-FileHash -LiteralPath $rgSource).Hash) {
-    New-Item -ItemType Directory -Force -Path $kiloCacheBin | Out-Null
+    New-Item -ItemType Directory -Force -Path $opencodeCacheBin | Out-Null
     Copy-Item -LiteralPath $rgSource -Destination $rgTarget -Force
 }
 
@@ -378,7 +407,7 @@ foreach ($file in @('server_IP_mappings.json', 'owners.json')) {
     $mapping = Join-Path $configDir (Join-Path 'redis' $file)
     if (-not (Test-Path -LiteralPath $mapping)) { Write-Text $mapping '{}' }
 }
-# The MCP servers run on the bundled Python only; fail here rather than inside kilo.
+# The MCP servers run on the bundled Python only; fail here rather than inside OpenCode.
 $probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import main, redis, mcp; print('MCP_RUNTIME_OK')")
 if ($probe.Code -or $probe.Text -notmatch 'MCP_RUNTIME_OK') { throw "Bundled MCP runtime check failed:`n$($probe.Text)" }
 # The Word server only needs Word itself for word_live_* tools; the import check works without it.
@@ -412,11 +441,11 @@ foreach ($name in @($machineVars.Keys) + @($secrets.Keys)) {
 }
 foreach ($name in $machineVars.Keys) { [Environment]::SetEnvironmentVariable($name, $machineVars[$name], 'Process') }
 foreach ($name in $secrets.Keys) { [Environment]::SetEnvironmentVariable($name, $secrets[$name], 'Process') }
-$started = Invoke-Native $kiloExe @('--version')
+$started = Invoke-Native $opencodeCmd @('--version')
 $version = [regex]::Match($started.Text, '(?m)^\d+\.\d+\.\d+\S*').Value
-if ($started.Code -or -not $version) { throw "kilo.exe did not start: $kiloExe`n$($started.Text)" }
+if ($started.Code -or -not $version) { throw "OpenCode did not start: $opencodeCmd`n$($started.Text)" }
 
-Write-Host "Kilo $version, default model $providerId/$default"
-Write-Host "Kilo settings: $kiloConfigDir (kilo.json is regenerated by setup; put your own changes in kilo.jsonc)"
+Write-Host "OpenCode $version, default model $providerId/$default"
+Write-Host "OpenCode settings: $opencodeConfigDir (opencode.json is generated; use opencode.jsonc for personal settings)"
 Write-Host "System PATH: $($systemPathDirs -join ', ')"
-Write-Host "Setup complete. Fully close your terminal application, reopen it, and run 'kilo' in any folder."
+Write-Host "Setup complete. Fully close your terminal application, reopen it, and run 'opencode' in any folder."

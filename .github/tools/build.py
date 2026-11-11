@@ -4,7 +4,7 @@
 Downloads are pinned by version and hash in config/offline-artifacts.lock.json, config/redis/requirements.lock
 and config/word/requirements.lock, config/windows/requirements.lock.
 The target PC never downloads, installs or builds anything.
-  python .github/tools/build.py   # prepare bin/ and runtime/, then dist/kilo-kit-win-x64.zip
+  python .github/tools/build.py   # prepare bin/ and runtime/, then dist/opencode-kit-win-x64.zip
 """
 import argparse
 import hashlib
@@ -20,7 +20,7 @@ import urllib.request
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
-NAME = "kilo-kit"
+NAME = "opencode-kit"
 CACHE = ROOT / ".cache/offline"
 
 
@@ -36,7 +36,7 @@ def fetch(name, artifact):
     target = CACHE / f"{name}-{artifact['version']}.zip"
     if not target.exists():
         print(f"Downloading {name} {artifact['version']} ...", flush=True)
-        request = urllib.request.Request(artifact["url"], headers={"User-Agent": "kilo-kit-offline-builder"})
+        request = urllib.request.Request(artifact["url"], headers={"User-Agent": "opencode-kit-offline-builder"})
         partial = target.with_suffix(".partial")
         try:
             with urllib.request.urlopen(request, context=ssl.create_default_context(), timeout=300) as source, partial.open("wb") as out:
@@ -91,7 +91,7 @@ def prepare_artifacts(lock):
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(staging), destination)
         print(f"Prepared {artifact['destination']} ({artifact['version']})", flush=True)
-    for relative in ("bin/kilo/kilo.exe", "runtime/python/python.exe", "bin/rg.exe", "bin/fd.exe"):
+    for relative in ("bin/opencode/opencode.exe", "runtime/python/python.exe", "bin/rg.exe", "bin/fd.exe"):
         require_pe(ROOT / relative)
 
 
@@ -152,6 +152,22 @@ def prepare_python():
                    check=True, cwd=tempfile.gettempdir())
 
 
+def prepare_tools():
+    # CI runs npm ci --ignore-scripts against this lock before the tests. Never npm on the target PC.
+    source = ROOT / "tools/encoding"
+    if not (source / "node_modules/@opencode-ai/plugin/dist/index.js").is_file():
+        raise ValueError("CI must run npm ci --prefix tools/encoding --ignore-scripts first.")
+    target = ROOT / "runtime/opencode-tools"
+    if target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    shutil.copy2(ROOT / "config/opencode.cmd", ROOT / "bin/opencode.cmd")
+    shutil.copy2(source / "package-lock.json", ROOT / "third_party/opencode/tools-package-lock.json")
+    subprocess.run([str(ROOT / "runtime/python/python.exe"), "-I", "-X", "utf8", "-B", "-c",
+                    "import runpy, sys; runpy.run_path(sys.argv[1], run_name='encoding_check')", str(target / "file_io.py")],
+                   check=True, cwd=tempfile.gettempdir())
+
+
 def package(lock, output):
     output = Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -164,7 +180,7 @@ def package(lock, output):
     with tempfile.TemporaryDirectory(prefix="package-", dir=CACHE) as tmp:
         stage = Path(tmp) / NAME
         stage.mkdir()
-        for relative in ("bin", "runtime/python", "runtime/word-mcp", "runtime/windows-mcp", "mcp", "config", "scripts", "docs", "third_party"):
+        for relative in ("bin", "runtime/python", "runtime/word-mcp", "runtime/windows-mcp", "runtime/opencode-tools", "mcp", "config", "scripts", "docs", "third_party"):
             shutil.copytree(ROOT / relative, stage / relative, ignore=ignore)
         for relative in ("setup.ps1", "README.md"):
             shutil.copy2(ROOT / relative, stage / relative)
@@ -199,6 +215,7 @@ def main():
     lock = json.loads((ROOT / "config/offline-artifacts.lock.json").read_text(encoding="utf-8"))
     prepare_artifacts(lock)
     prepare_python()
+    prepare_tools()
     package(lock, args.output)
 
 

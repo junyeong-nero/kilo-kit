@@ -1,8 +1,8 @@
 # Word MCP
 
-[word-mcp-live](https://github.com/ykarapazar/word-mcp-live) 1.6.21(MIT)을 Kilo에서 쓰도록 동봉한 MCP 서버입니다. Kilo 설정(`%USERPROFILE%\.config\kilo\kilo.json`)의 서버 이름은 `word`이고, 모델에는 `word_<도구>` 이름으로 보입니다.
+[word-mcp-live](https://github.com/ykarapazar/word-mcp-live) 1.6.21(MIT)을 OpenCode에서 쓰도록 동봉한 MCP 서버입니다. OpenCode 설정(`%USERPROFILE%\.config\opencode\opencode.json`)의 서버 이름은 `word`이고, 모델에는 `word_<도구>` 이름으로 보입니다.
 
-- **실행:** `<배포 폴더>\runtime\python\python.exe -I -X utf8 -B -m word_mcp`를 절대 경로로 실행합니다. 항목은 `setup.ps1`이 [config/kilo.template.json](../../config/kilo.template.json)에서 만듭니다.
+- **실행:** `<배포 폴더>\runtime\python\python.exe -I -X utf8 -B -m word_mcp`를 절대 경로로 실행합니다. 항목은 `setup.ps1`이 [config/opencode.template.json](../../config/opencode.template.json)에서 만듭니다.
 - **패키지 위치:** word-mcp-live는 fastmcp 4를 통해 mcp 2가 필요하고 빌드센터 MCP는 mcp 1을 씁니다. 그래서 Word용 패키지는 [config/word/requirements.lock](../../config/word/requirements.lock)으로 `runtime\word-mcp\`에 따로 설치합니다. [word_mcp.py](word_mcp.py)가 이 폴더만 모듈 경로에 두고 서버를 시작합니다.
 - **외부 통신:** 서버는 stdio로만 실행합니다. 런처가 `MCP_TRANSPORT=stdio`, `FASTMCP_CHECK_FOR_UPDATES=off`를 고정하므로 프로젝트 폴더의 `.env`가 있어도 네트워크 포트를 열거나 업데이트를 확인하지 않습니다.
 - **변경 추적 작성자:** 변경 내용 추적과 메모의 작성자는 Windows 사용자 이름(`%USERNAME%`)입니다. 다른 이름을 쓰려면 시스템 또는 사용자 환경 변수 `MCP_AUTHOR`(이니셜은 `MCP_AUTHOR_INITIALS`)를 지정하세요.
@@ -17,7 +17,7 @@ python-docx로 `.docx` 파일을 직접 읽고 쓰는 나머지 도구(`get_docu
 
 ## 승인
 
-읽기 전용 도구 15개(`word_live_get_*`, `word_live_find_text`, `word_live_list_*`, `word_screen_capture` 등 서버가 `readOnlyHint`로 표시한 것)는 승인 없이 실행하고, 문서를 바꾸는 나머지 도구는 실행 전에 승인을 요청합니다. 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
+읽기 전용 도구 15개(`word_live_get_*`, `word_live_find_text`, `word_live_list_*`, `word_screen_capture` 등 서버가 `readOnlyHint`로 표시한 것)는 승인 없이 실행하고, 문서를 바꾸는 나머지 도구는 실행 전에 승인을 요청합니다. 규칙은 `opencode.jsonc`의 `permission`에서 바꿀 수 있습니다.
 
 ## 큰 문서
 
