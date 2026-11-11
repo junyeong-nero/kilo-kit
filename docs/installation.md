@@ -98,6 +98,10 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하는 모델로 자동 �
 
 셋업은 이 값을 Kilo의 `attachment`와 `modalities` 설정에 반영합니다. 기존 버전에서 업그레이드했다면 새 배포본의 `setup.ps1`을 실행한 뒤 Kilo를 다시 시작하세요.
 
+### Qwen3.5 sampling 설정
+
+모델 ID에 `Qwen3.5-`가 들어간 모델에는 Qwen 공식 권장값(thinking mode, 정밀 coding 작업)을 `kilo.json` 모델 `options`로 넣습니다: `temperature=0.6`, `top_p=0.95`, `top_k=20`, `min_p=0`, `presence_penalty=0`, `repetition_penalty=1`. Kilo는 이 값을 요청 본문에 그대로 보냅니다. `top_k`·`min_p`·`repetition_penalty`는 vLLM·SGLang 확장 파라미터이므로 사내 API가 이 파라미터를 지원해야 합니다. 값은 `kilo.jsonc`의 `provider.<id>.models.<모델 ID>.options`에서 바꿀 수 있습니다.
+
 1. `Win+Shift+S`로 화면을 캡처합니다.
 2. Kilo 입력창에서 **`Ctrl+V`**를 누릅니다.
 3. `[Image 1]`이 표시되면 질문을 입력하고 전송합니다.

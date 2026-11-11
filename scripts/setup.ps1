@@ -206,6 +206,13 @@ function Get-ImageInput($Saved, [string]$ModelId) {
     # Recognize the known vision model, including provider prefixes and quantization suffixes.
     return $ModelId -match '(?i)(^|/)qwen3[.]5-397b($|[-_])'
 }
+function Get-SamplingOptions([string]$ModelId) {
+    # Qwen3.5 model card: thinking mode for precise coding tasks. Kilo sends model options as request body fields.
+    if ($ModelId -match '(?i)(^|/)qwen3[.]5-') {
+        return [ordered]@{ temperature = 0.6; top_p = 0.95; top_k = 20; min_p = 0.0; presence_penalty = 0.0; repetition_penalty = 1.0 }
+    }
+    return $null
+}
 function Get-ApiModels([string]$Url, [string]$Key) {
     $headers = @{}
     if ($Key) { $headers['Authorization'] = "Bearer $Key" }
@@ -356,6 +363,8 @@ foreach ($entry in $models) {
         modalities = [ordered]@{ input = $inputModalities; output = @('text') }
         limit = [ordered]@{ context = $entry.contextWindow; output = $entry.maxTokens }
     }
+    $sampling = Get-SamplingOptions $entry.id
+    if ($sampling) { $kiloModels[$entry.id]['options'] = $sampling }
 }
 $kiloConfig['enabled_providers'] = @($providerId)
 $kiloConfig['model'] = "$providerId/$default"
