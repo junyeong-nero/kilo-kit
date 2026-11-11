@@ -2,11 +2,13 @@
 
 폐쇄망 Windows PC에서 사내 AI 모델로 [OpenCode CLI](https://github.com/anomalyco/opencode)를 사용하는 배포본입니다. ZIP을 반입해 압축을 풀고 `setup.ps1`에서 API 주소와 키를 등록하면 됩니다. 대상 PC에서 Node.js·Python·npm/pip 설치나 인터넷 다운로드를 하지 않습니다.
 
-> Kilo → OpenCode 전환 작업입니다. 로컬 폴더와 GitHub 저장소 이름은 아직 `kilo-kit`이며 기존 Kilo 릴리스는 그대로 유지합니다. **새 배포를 게시하기 전에는 기존 v0.1.3을 OpenCode 배포본으로 사용하지 마세요.**
+> **v0.2.0부터 OpenCode 기반입니다.** 로컬 폴더와 GitHub 저장소 이름은 아직 `kilo-kit`이며 기존 Kilo 릴리스는 그대로 유지합니다. v0.1.3은 OpenCode 배포본이 아닙니다.
 
 ## 배포 ZIP
 
-[Releases 페이지](https://github.com/junyeong-nero/kilo-kit/releases)에서 **`opencode-kit-win-x64.zip`**이 첨부된 릴리스를 받으세요. 이 이름의 파일이 아직 없다면 OpenCode 전환본은 미배포 상태입니다. GitHub의 Download ZIP / Source code (zip)은 실행 가능한 배포본이 아닙니다.
+**[v0.2.0 배포 ZIP 다운로드](https://github.com/junyeong-nero/kilo-kit/releases/download/v0.2.0/opencode-kit-win-x64.zip)**
+
+[Releases 페이지](https://github.com/junyeong-nero/kilo-kit/releases)에서도 `opencode-kit-win-x64.zip`을 받을 수 있습니다. GitHub의 Download ZIP / Source code (zip)은 실행 가능한 배포본이 아닙니다.
 
 ## 포함된 도구
 
