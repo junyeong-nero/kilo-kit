@@ -6,7 +6,9 @@
 
 ## 배포 ZIP
 
-**[v0.2.0 배포 ZIP 다운로드](https://github.com/junyeong-nero/kilo-kit/releases/download/v0.2.0/opencode-kit-win-x64.zip)**
+**[v0.2.1 배포 ZIP 다운로드](https://github.com/junyeong-nero/kilo-kit/releases/download/v0.2.1/opencode-kit-win-x64.zip)**
+
+v0.2.1은 `apiKeyEnv`에 잘못 넣은 `sk-...` 키를 시스템 변수로 옮기고, 기존 `opencode.db` 대신 별도 `opencode-kit.db`를 초기화합니다. 기존 DB는 삭제하지 않으며, 정상 대화 기록을 계속 사용하려면 [세션 DB 안내](docs/installation.md#세션-db)를 확인하세요.
 
 [Releases 페이지](https://github.com/junyeong-nero/kilo-kit/releases)에서도 `opencode-kit-win-x64.zip`을 받을 수 있습니다. GitHub의 Download ZIP / Source code (zip)은 실행 가능한 배포본이 아닙니다.
 

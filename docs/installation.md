@@ -4,7 +4,7 @@
 
 ## 설치
 
-1. [Releases](https://github.com/junyeong-nero/kilo-kit/releases)에서 v0.2.0 이상 릴리스의 `opencode-kit-win-x64.zip`을 받습니다. Source code (zip)은 설치용이 아닙니다.
+1. [Releases](https://github.com/junyeong-nero/kilo-kit/releases)에서 v0.2.1 이상 릴리스의 `opencode-kit-win-x64.zip`을 받습니다. Source code (zip)은 설치용이 아닙니다.
 2. 함께 제공되는 `.sha256`과 `Get-FileHash .\opencode-kit-win-x64.zip -Algorithm SHA256` 결과를 비교합니다.
 3. ZIP을 반입해 예를 들어 `D:\opencode-kit`에 풉니다.
 4. PowerShell에서 실행합니다.
