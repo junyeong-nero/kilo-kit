@@ -5,6 +5,8 @@ set "npm_config_offline=true"
 set "npm_config_audit=false"
 set "npm_config_fund=false"
 set "OPENCODE_KIT_HOME=%~dp0.."
+rem Leave unrelated/partially initialized opencode.db untouched. Honor explicit user overrides.
+if not defined OPENCODE_DB set "OPENCODE_DB=opencode-kit.db"
 set "OPENCODE_DISABLE_AUTOUPDATE=1"
 set "OPENCODE_DISABLE_MODELS_FETCH=1"
 set "OPENCODE_DISABLE_DEFAULT_PLUGINS=true"

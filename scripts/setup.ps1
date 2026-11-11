@@ -139,14 +139,25 @@ function Write-Text([string]$Path, [string]$Text) {
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Path) | Out-Null
     [IO.File]::WriteAllText($Path, $Text, $utf8)
 }
-function Install-File([string]$Path, [string]$Text) {
-    # Keep one backup of a file that someone else wrote or that an older setup generated.
+function Install-File([string]$Path, [string]$Text, [string]$BackupText) {
+    # Keep one backup; callers migrating a misplaced secret must supply a sanitized backup.
     if (Test-Path -LiteralPath $Path -PathType Leaf) {
         if ([IO.File]::ReadAllText($Path, $utf8) -ceq $Text) { return }
-        Copy-Item -LiteralPath $Path -Destination "$Path.bak" -Force
+        if ($PSBoundParameters.ContainsKey('BackupText')) { Write-Text "$Path.bak" $BackupText }
+        else { Copy-Item -LiteralPath $Path -Destination "$Path.bak" -Force }
         Write-Host "Backed up $Path -> $Path.bak"
     }
     Write-Text $Path $Text
+}
+function Resolve-ApiKeySetting([string]$Value) {
+    if (-not $Value) { $Value = 'CORP_LLM_API_KEY' }
+    if ($Value.StartsWith('sk-')) {
+        return [pscustomobject]@{ Name = 'CORP_LLM_API_KEY'; InlineKey = $Value }
+    }
+    if ($Value -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') {
+        throw 'provider.apiKeyEnv must be an environment variable NAME (for example CORP_LLM_API_KEY), not the API key. Enter the actual key at the hidden setup prompt. The invalid value is not printed.'
+    }
+    return [pscustomobject]@{ Name = $Value; InlineKey = $null }
 }
 function Read-Secret([string]$Prompt) {
     $secure = Read-Host -Prompt $Prompt -AsSecureString
@@ -215,9 +226,13 @@ if (-not $registry.provider) { throw "config\models.json has no provider. Copy c
 $provider = $registry.provider
 $providerId = if ($provider.id) { [string]$provider.id } else { 'corp' }
 $providerName = if ($provider.name) { [string]$provider.name } else { $providerId }
-$keyEnv = if ($provider.apiKeyEnv) { [string]$provider.apiKeyEnv } else { 'CORP_LLM_API_KEY' }
+$keySetting = Resolve-ApiKeySetting ([string]$provider.apiKeyEnv)
+$keyEnv = $keySetting.Name
+if ($keySetting.InlineKey) {
+    if (-not (Test-Path -LiteralPath $modelsPath)) { throw 'Do not put API keys in models.example.json. Restore apiKeyEnv to CORP_LLM_API_KEY and use the hidden setup prompt.' }
+    Write-Warning 'apiKeyEnv contains an API key, not a variable name. It will be moved to CORP_LLM_API_KEY after system registration; models.json and its backup will contain only the variable name.'
+}
 if ($providerId -notmatch '^[a-z0-9_-]+$') { throw "provider.id must use lowercase letters, digits, '-' or '_': $providerId" }
-if ($keyEnv -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') { throw "provider.apiKeyEnv is not a valid variable name: $keyEnv" }
 $url = if ($BaseUrl) { $BaseUrl } else { [string]$provider.baseUrl }
 if (-not $BaseUrl -and ($Reconfigure -or -not $url -or $url -match '[<>]')) {
     if (-not $interactive) { throw 'Set provider.baseUrl in config\models.json or pass -BaseUrl, then run setup again.' }
@@ -232,6 +247,9 @@ $key = Get-SavedValue $keyEnv
 if ($PSBoundParameters.ContainsKey('ApiKey')) {
     $key = $ApiKey
     if ($ApiKey) { $secrets[$keyEnv] = $ApiKey }
+} elseif ($keySetting.InlineKey) {
+    $key = $keySetting.InlineKey
+    $secrets[$keyEnv] = $key
 } elseif ($interactive -and ($Reconfigure -or -not $key)) {
     $entered = Read-Secret "API key for $url (hidden; Enter keeps the current value or uses no key)"
     if ($entered) { $key = $entered; $secrets[$keyEnv] = $entered }
@@ -309,7 +327,7 @@ $completed = [ordered]@{
     default  = $default
     models   = @($models | ForEach-Object { [ordered]@{ id = $_.id; name = $_.name; contextWindow = $_.contextWindow; maxTokens = $_.maxTokens; imageInput = $_.imageInput } })
 }
-Install-File $modelsPath ((ConvertTo-Json -InputObject $completed -Depth 8) + "`n")
+# Persist the registry only after system secret registration succeeds (below).
 Write-Host "Provider $providerId ($url): $($ids.Count) model(s), default $default"
 
 # 3. Standard OpenCode config. Preserve personal JSONC and refuse to overwrite unrelated npm packages.
@@ -441,10 +459,21 @@ foreach ($name in @($machineVars.Keys) + @($secrets.Keys)) {
 }
 foreach ($name in $machineVars.Keys) { [Environment]::SetEnvironmentVariable($name, $machineVars[$name], 'Process') }
 foreach ($name in $secrets.Keys) { [Environment]::SetEnvironmentVariable($name, $secrets[$name], 'Process') }
+# Never copy a misplaced API key into the .bak file. Keep the input intact if elevation failed.
+$registryText = (ConvertTo-Json -InputObject $completed -Depth 8) + "`n"
+if ($keySetting.InlineKey) {
+    $registry.provider.apiKeyEnv = $keyEnv
+    Install-File $modelsPath $registryText -BackupText ((ConvertTo-Json -InputObject $registry -Depth 8) + "`n")
+} else { Install-File $modelsPath $registryText }
 $started = Invoke-Native $opencodeCmd @('--version')
 $version = [regex]::Match($started.Text, '(?m)^\d+\.\d+\.\d+\S*').Value
 if ($started.Code -or -not $version) { throw "OpenCode did not start: $opencodeCmd`n$($started.Text)" }
 
+# --version/debug config do not initialize the session database. Exercise the actual DB service too.
+$database = Invoke-Native $opencodeCmd @('db', "SELECT name FROM sqlite_master WHERE type='table' AND name='session'", '--format', 'json')
+if ($database.Code) { throw "OpenCode session database initialization failed. Existing databases were not deleted. Check 'opencode db path' and any OPENCODE_DB override.`n$($database.Text)" }
+if (@(($database.Text | ConvertFrom-Json).name) -notcontains 'session') { throw 'OpenCode session table was not initialized.' }
+Write-Host 'OpenCode session database initialized (existing default DB preserved; OPENCODE_DB overrides are respected).'
 Write-Host "OpenCode $version, default model $providerId/$default"
 Write-Host "OpenCode settings: $opencodeConfigDir (opencode.json is generated; use opencode.jsonc for personal settings)"
 Write-Host "System PATH: $($systemPathDirs -join ', ')"

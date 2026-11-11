@@ -15,7 +15,8 @@
 - 모델 목록 조회·자동 업데이트·기본 플러그인·LSP 다운로드·공유를 비활성화하고 rg를 동봉한다. `bin/opencode.cmd`는 승인된 유일한 실행 진입점 예외로, npm offline을 해당 프로세스에만 적용한다. 시스템 전체 npm 설정은 바꾸지 않는다.
 - `scripts/`에는 `setup.ps1`만 둔다. 루트 `setup.ps1`은 바로가기다. 필수 파일 확인·프로바이더 등록·모델 탐색·설정 설치·시스템 PATH/환경 변수 설정을 이 파일에서 처리한다.
 - 생성 설정은 `%USERPROFILE%/.config/opencode/opencode.json`, 사용자 설정은 `opencode.jsonc`다. 교체 파일은 `.bak`으로 백업하고 사용자 jsonc는 덮어쓰지 않는다. 기존 Kilo 설정·세션은 삭제하지 않는다. 플러그인은 runtime/opencode-tools의 고정 의존성을 사용한다. OpenCode 초기화를 위한 의존성 복사는 kit 소유 마커가 있거나 비어 있는 설정 폴더에만 하며, 비관리 기존 설치는 호환성을 확인하거나 중단한다.
-- API 키는 시스템 환경 변수에 보관한다. 실제 API 키·`config/models.json`·Redis 실제 매핑·세션·캐시는 ZIP에 넣지 않는다.
+- API 키는 시스템 환경 변수에 보관한다. `apiKeyEnv`에 잘못 넣은 `sk-...` 키는 시스템 등록 성공 후 변수 이름으로 정정하며, 원문 키를 오류·JSON 백업에 복제하지 않는다. 실제 API 키·`config/models.json`·Redis 실제 매핑·세션·캐시는 ZIP에 넣지 않는다.
+- 진입점은 OPENCODE_DB가 없으면 프로세스 전용 `opencode-kit.db`를 사용한다. 기존 opencode.db는 삭제·변환하지 않는다. 명시적 OPENCODE_DB는 존중하고 셋업은 실제 session 테이블 초기화까지 검사한다.
 - 자동 배포를 제거하거나 실행 파일 준비 책임을 사용자에게 넘기지 않는다.
 
 ## 인코딩 및 검증

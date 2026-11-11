@@ -32,6 +32,20 @@
 
 `/models`로 목록을 조회합니다. 이미 `config/models.json`에 등록된 모델이 있으면 API 조회 실패 시 경고 후 그 목록을 사용할 수 있습니다. 직접 지정한 contextWindow·maxTokens·name·imageInput은 유지합니다.
 
+## API 키 입력
+
+`provider.apiKeyEnv`는 API 키가 아니라 **환경 변수 이름**입니다. 정상 설정은 `"apiKeyEnv": "CORP_LLM_API_KEY"`이며, 실제 `sk-...` 키는 셋업의 숨김 입력창에 입력합니다. 키 값에는 환경 변수 이름용 정규식을 적용하지 않습니다.
+
+이미 `config/models.json`의 `apiKeyEnv`에 `sk-...` 키를 넣었다면, 수정된 셋업은 이를 실제 키로 인식해 시스템 `CORP_LLM_API_KEY`에 등록합니다. 등록 성공 후 JSON에는 변수 이름만 남기고 `.bak`도 실제 키를 제거한 내용으로 생성합니다. 관리자 승인이 실패하면 입력 파일을 지우지 않습니다. `-ApiKey`를 함께 지정하면 명시한 옵션이 우선합니다. 예제 파일에는 실제 키를 넣지 마세요.
+
+## 세션 DB
+
+수정된 `bin/opencode.cmd`는 기존 `opencode.db`와 분리된 **`opencode-kit.db`**를 사용합니다. 기본 위치는 `%USERPROFILE%\.local\share\opencode\opencode-kit.db`이며 `XDG_DATA_HOME`이 있으면 그 아래 `opencode`를 사용합니다. 기존 DB를 삭제·변환하지 않습니다. 이미 설정한 `OPENCODE_DB`는 존중하며, 실제 경로는 `opencode db path`로 확인합니다.
+
+`Database is not empty and has no session table`은 선택된 DB에 테이블은 있지만 OpenCode의 `session` 테이블이 없다는 뜻입니다. 키 형식 문제가 아닙니다. 기존 기본 DB가 이 상태라면 kit 전용 DB로 분리해 시작할 수 있습니다. 셋업도 이제 `--version` 외에 실제 DB 초기화와 `session` 테이블을 검사합니다.
+
+기존 `opencode.db`에 정상 대화가 있던 사용자는 DB 분리 후 그 기록이 자동으로 보이지 않습니다. 원본은 남아 있으므로 **백업 후** 해당 DB의 호환성을 확인하고 `OPENCODE_DB`로 경로를 명시해 사용하세요. 오류가 계속되면 DB를 삭제하지 말고 `Get-Command opencode`, `opencode db path`, `OPENCODE_DB` 설정을 먼저 확인하세요.
+
 ## 설정 위치
 
 | 위치 | 내용 |
@@ -82,10 +96,11 @@ Windows-MCP는 UI 트리와 이미지 결과를 제공합니다. 무관한 창�
 | `opencode`를 찾지 못함 | 터미널/IDE를 완전히 종료 후 재실행, PATH의 새 bin 확인 |
 | 인코딩 오류 | [encoding-rules.json](encoding.md) 설정. 기본 도구·셸로 우회 금지 |
 | 모델/도구가 예상과 다름 | 사용자·프로젝트 설정, OPENCODE_CONFIG* 변수와 추가 플러그인의 덮어쓰기 확인 |
-| API 인증·조회 실패 | 주소, 키, `/models` 응답 확인 |
+| API 인증·조회 실패 | 주소, 키, `/models` 응답 확인. `apiKeyEnv`는 실제 키가 아닌 변수 이름 |
+| `Database is not empty and has no session table` | 위 세션 DB 안내 확인. 수정된 cmd 진입점·`OPENCODE_DB` 확인, 기존 DB 임의 삭제 금지 |
 | MCP 연결·캡처 실패 | `opencode mcp list`, Windows 세션·권한, 사내 API 이미지 지원 확인 |
 
-CI는 인코딩 테스트와 초기 로딩을 검사하지만 사내 API 추론·실제 MFC/WPF/Word 작업은 검증하지 않습니다.
+CI에는 인코딩·키 등록·기존 DB 보존·세션 DB 초기화·설정/도구 로딩 검사를 포함합니다. 사내 API 추론·실제 MFC/WPF/Word 작업은 검증하지 않습니다.
 
 ## 제거
 
