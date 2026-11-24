@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Literal
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 from redis.exceptions import RedisError
 
 from service import QueryError, RedisService
@@ -20,17 +21,18 @@ def create_server(config_dir):
         finally:
             service.close()
 
-    server = FastMCP("빌드센터", lifespan=lifespan)
+    server = MCPServer("빌드센터", lifespan=lifespan)
 
     def call(method, **kwargs):
         try:
             with service.lock:
                 return method(**kwargs)
         except QueryError as error:
-            raise ValueError(str(error)) from None
+            # MCP SDK 2 shows the model the text of a ToolError only
+            raise ToolError(str(error)) from None
         except (RedisError, OSError, UnicodeError):
             # redis-py errors may contain connection details. Never expose credentials or raw values.
-            raise ValueError("Redis 조회 실패: 연결·인증·TLS·문자열 자료형·UTF-8 설정을 확인하세요") from None
+            raise ToolError("Redis 조회 실패: 연결·인증·TLS·문자열 자료형·UTF-8 설정을 확인하세요") from None
 
     @server.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
     def list_projects() -> dict[str, Any]:

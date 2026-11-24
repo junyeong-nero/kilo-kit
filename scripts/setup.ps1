@@ -40,10 +40,9 @@ $required = @('bin\kilo\kilo.exe', 'bin\kilo\kilo-sandbox-mutation-worker.js', '
     'runtime\python\python.exe', 'runtime\python\python313.dll', 'runtime\python\python313.zip', 'runtime\python\python313._pth',
     'runtime\python\Lib\site-packages\redis\__init__.py', 'runtime\python\Lib\site-packages\mcp\__init__.py',
     'runtime\python\Lib\site-packages\tzdata\__init__.py', 'bin\fd.exe',
-    'runtime\word-mcp\word_document_server\main.py', 'runtime\word-mcp\mcp\__init__.py', 'runtime\word-mcp\win32com\__init__.py',
-    'runtime\windows-mcp\windows_mcp\__main__.py', 'runtime\windows-mcp\mcp\__init__.py',
-    'runtime\windows-mcp\win32com\__init__.py', 'runtime\windows-mcp\PIL\Image.py',
-    'mcp\build-center\main.py', 'mcp\build-center\service.py', 'mcp\encoding\encoding_mcp.py', 'mcp\word\word_mcp.py',
+    'runtime\python\Lib\site-packages\windows_mcp\__main__.py', 'runtime\python\Lib\site-packages\win32com\__init__.py',
+    'runtime\python\Lib\site-packages\PIL\Image.py',
+    'mcp\build-center\main.py', 'mcp\build-center\service.py', 'mcp\encoding\encoding_mcp.py', 'mcp\word-vba\word_vba.py',
     'mcp\windows\windows_mcp_launcher.py',
     'config\kilo.template.json', 'config\models.example.json', 'config\AGENTS.md',
     'config\redis\settings.json', 'config\redis\server_IP_mappings.example.json', 'config\redis\owners.example.json',
@@ -408,12 +407,9 @@ foreach ($file in @('server_IP_mappings.json', 'owners.json')) {
 # The MCP servers run on the bundled Python only; fail here rather than inside kilo.
 $probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import main, encoding_mcp, redis, mcp; print('MCP_RUNTIME_OK')")
 if ($probe.Code -or $probe.Text -notmatch 'MCP_RUNTIME_OK') { throw "Bundled MCP runtime check failed:`n$($probe.Text)" }
-# The Word server only needs Word itself for word_live_* tools; the import check works without it.
-$probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import word_mcp; word_mcp.use_word_packages(); import pythoncom, word_document_server.main; print('WORD_MCP_OK')")
-if ($probe.Code -or $probe.Text -notmatch 'WORD_MCP_OK') { throw "Bundled Word MCP runtime check failed:`n$($probe.Text)" }
-# Import only: setup must not capture the screen or inject desktop input.
-$probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import windows_mcp_launcher as w; w.use_windows_packages(); import pythoncom, windows_mcp.__main__; print('WINDOWS_MCP_OK')")
-if ($probe.Code -or $probe.Text -notmatch 'WINDOWS_MCP_OK') { throw "Bundled Windows MCP runtime check failed:`n$($probe.Text)" }
+# Import only: Word is needed only when run_vba runs, and setup must not capture the screen or inject desktop input.
+$probe = Invoke-Native $python @('-I', '-X', 'utf8', '-B', '-c', "import word_vba, windows_mcp_launcher, pythoncom, windows_mcp.__main__; print('WINDOWS_MCP_OK')")
+if ($probe.Code -or $probe.Text -notmatch 'WINDOWS_MCP_OK') { throw "Bundled Word VBA / Windows MCP runtime check failed:`n$($probe.Text)" }
 
 # 5. Machine PATH and variables. Elevate only for this step so per-user files above stay in the caller's profile.
 if (-not (Test-SystemReady $secrets)) {

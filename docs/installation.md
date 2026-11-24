@@ -2,7 +2,21 @@
 
 배포 ZIP에는 실행에 필요한 파일이 들어 있습니다. 폐쇄망 PC에서는 압축을 풀고 `setup.ps1`을 한 번 실행하면 됩니다. Node.js·Python·Git을 별도로 설치할 필요는 없습니다.
 
+## 포함된 도구
+
+- **Kilo CLI 7.8.18** — `bin\kilo\`에 실행 파일과 실행에 필요한 리소스가 들어 있습니다.
+- **빌드센터 MCP** — 빌드센터 Redis에서 프로젝트·모듈·담당자별 빌드 및 시험 결과와 로그를 조회합니다. 전용 Python 런타임도 함께 제공합니다. [빌드센터 MCP 안내](../mcp/build-center/README.md)
+- **인코딩 보존 MCP** — CP949·EUC-KR·UTF-16·BOM 파일의 인코딩과 줄바꿈을 그대로 유지하면서 읽고 고칩니다. 동봉 Python만 사용합니다. [인코딩 보존 MCP 안내](../mcp/encoding/README.md)
+- **Word VBA MCP** — Word에 열어 둔 문서(DRM 문서 포함)에 에이전트가 쓴 VBA를 실행해 읽기·검색·편집합니다(Word 필요). Word 보안 센터의 "VBA 프로젝트 개체 모델에 안전하게 액세스" 설정이 필요합니다. [Word VBA MCP 안내](../mcp/word-vba/README.md)
+- **Windows-MCP 0.8.5** — Windows 앱의 UI 조회·클릭·입력을 제공합니다. 기존 Python 3.13과 호환되는 버전입니다. 모든 조작은 승인을 요청합니다. [Windows-MCP 안내](../mcp/windows/README.md)
+- **rg(ripgrep) 15.2.0, fd 10.5.0** — 내용 검색과 파일 찾기에 사용하는 도구로, `bin\`에 들어 있습니다.
+
+확장, Edge MCP, 언어 서버(LSP)는 포함하지 않습니다. OpenCode 전용 인코딩 custom tools·npm 의존성·DB 분리 진입점도 제거했습니다. CP949/UTF-16 보존은 위의 인코딩 보존 MCP가 대신 맡습니다.
+
 ## OpenCode에서 Kilo로 복구
+
+OpenCode 전환을 철회하고 Kilo CLI 7.8.18로 복구했습니다. v0.2.0·v0.2.1은 OpenCode 배포본이므로 복구할 때는 새 `kilo-kit-win-x64.zip`을 사용하세요.
+
 
 - 새 `kilo-kit-win-x64.zip`을 `D:\kilo-kit` 같은 **별도 폴더**에 풀고 아래 셋업을 실행합니다. OpenCode 폴더에 섞어 덮어쓰지 마세요. 기존 Kilo 폴더를 재사용할 때도 먼저 백업합니다.
 - 기존 `config/models.json`과 Redis 실제 매핑은 필요한 경우 새 폴더로 복사해 재사용할 수 있습니다. 시스템 API 키도 재사용합니다.
@@ -76,6 +90,20 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 | `-NonInteractive` | 입력을 묻지 않고 실행합니다. 자동화용 옵션이며, 필요한 값이 없으면 오류로 종료됩니다. |
 | `-Check` | 설정을 바꾸지 않고 배포 파일이 갖춰져 있는지만 확인합니다. |
 
+## setup.ps1이 설정하는 것
+
+셋업은 사내 API에서 모델 목록을 가져오고, Kilo 설정과 시스템 환경 변수를 등록합니다. API 키도 시스템 변수에 저장하므로 관리자 권한이 필요합니다.
+
+| 항목 | 설정 내용 |
+|---|---|
+| 모델 프로바이더 | 입력한 주소의 `/models`에서 모델 목록과 컨텍스트 크기를 읽어 `config\models.json`을 만듭니다. 모델이 여러 개면 기본 모델을 선택할 수 있습니다. |
+| Kilo 설정 | `%USERPROFILE%\.config\kilo\`에 `kilo.json`과 도구 사용 규칙인 `AGENTS.md`를 설치합니다. `kilo.json`에는 프로바이더·모델·빌드센터 MCP·인코딩 보존 MCP·Word VBA MCP·Windows-MCP·권한·오프라인 설정이 들어갑니다. 기존 파일은 `.bak`으로 백업하고, 개인 설정용 `kilo.jsonc`는 덮어쓰지 않습니다. |
+| ripgrep | Kilo가 인터넷에서 다운로드하지 않도록, 동봉된 rg를 `%USERPROFILE%\.cache\kilo\bin\rg.exe`에도 복사합니다. |
+| 시스템 PATH | 어느 폴더에서든 `kilo`, `rg`, `fd`를 실행할 수 있도록 `bin\kilo`와 `bin`을 등록합니다. |
+| 시스템 변수 | API 키(`CORP_LLM_API_KEY`), 실행 옵션으로 지정한 경우에만 빌드센터 Redis 인증 정보(`REDISCLI_AUTH`, `HSC_REDIS_USERNAME`), 배포 폴더 경로(`KILO_KIT_HOME`)를 등록합니다. |
+
+외부 통신을 끄기 위해 `KILO_DISABLE_AUTOUPDATE`, `KILO_DISABLE_MODELS_FETCH`, `KILO_DISABLE_LSP_DOWNLOAD`, `KILO_DISABLE_SHARE`, `KILO_DISABLE_SESSION_INGEST`, `KILO_TELEMETRY_LEVEL=off`도 설정합니다. 모델을 사용하려면 사내 API에는 연결할 수 있어야 합니다.
+
 ## 설정 파일은 어디에 있나요?
 
 | 위치 | 용도 |
@@ -108,15 +136,15 @@ Qwen3.5-397B는 셋업에서 이미지 입력을 지원하는 모델로 자동 �
 
 이미지가 첨부되지 않는다면 터미널의 단축키 설정이나 Windows 클립보드 접근을 확인하세요. 첨부는 되지만 전송이 실패한다면 모델 설정과 사내 API의 이미지 요청 지원 여부를 확인해야 합니다. 모델 자체의 이미지 지원과 별개로, API 서버도 이미지 요청을 처리하도록 구성되어 있어야 합니다.
 
-### Windows 앱 조작과 스크린샷
+### Windows 앱 조작
 
-Windows-MCP는 동봉된 Python으로 실행되며 셋업이 자동 등록합니다. `kilo mcp list`에서 `windows` 연결을 확인한 다음, 무관한 창을 닫고 테스트 앱의 UI 조회와 해당 모니터의 스크린샷부터 요청하세요. 동봉된 0.8.5는 창 영역만 직접 캡처하는 인자를 지원하지 않습니다. 캡처·입력 모두 승인이 필요합니다. 이미지 확인에는 위의 모델 이미지 입력 설정과 사내 API 지원이 필요합니다.
+Windows-MCP는 동봉된 Python으로 실행되며 셋업이 자동 등록합니다. `kilo mcp list`에서 `windows` 연결을 확인한 다음, 무관한 창을 닫고 테스트 앱의 UI 조회부터 요청하세요. pi-kit과 같이 `Screenshot` 도구는 제공하지 않습니다. 모든 조작은 승인이 필요합니다.
 
-Windows 로컬의 로그인된 잠기지 않은 세션에서 사용하고 AI 조작 중에는 마우스·키보드를 동시에 쓰지 마세요. 캡처와 UI 텍스트가 모델 API로 전달되므로 업무 보안 정책을 따라야 합니다. 제공 도구·비활성화 방법·MFC/WPF 검증 순서는 [Windows-MCP 안내](../mcp/windows/README.md)를 참고하세요.
+Windows 로컬의 로그인된 잠기지 않은 세션에서 사용하고 AI 조작 중에는 마우스·키보드를 동시에 쓰지 마세요. UI 텍스트가 모델 API로 전달되므로 업무 보안 정책을 따라야 합니다. 제공 도구·비활성화 방법·MFC/WPF 검증 순서는 [Windows-MCP 안내](../mcp/windows/README.md)를 참고하세요.
 
 ### 명령 실행 승인
 
-파일 편집(내장 `edit`·`write`·`apply_patch`, `encoding_edit`·`encoding_write`)은 실행 전에 승인을 요청하고, `encoding_read`는 승인 없이 실행합니다. 셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word MCP는 읽기 도구만 승인 없이 실행하고, 문서를 바꾸는 도구는 승인을 요청합니다([Word MCP 안내](../mcp/word/README.md)). Windows-MCP는 스크린샷을 포함한 모든 도구에 승인을 요청합니다. 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
+파일 편집(내장 `edit`·`write`·`apply_patch`, `encoding_edit`·`encoding_write`)은 실행 전에 승인을 요청하고, `encoding_read`는 승인 없이 실행합니다. 셸 명령은 기본적으로 실행 전에 승인을 요청합니다. 다만 `Get-ChildItem`·`Get-Content`·`rg`·`fd`·`git status/diff/log`·`svn status/diff/log` 같은 조회 명령은 승인 없이 실행합니다. 빌드센터 도구도 조회 전용이므로 별도 승인을 묻지 않습니다. Word VBA MCP는 `list_documents`·`read_output`만 승인 없이 실행하고, `run_vba`는 승인을 요청합니다([Word VBA MCP 안내](../mcp/word-vba/README.md)). Windows-MCP는 모든 도구에 승인을 요청합니다. 이 규칙은 `kilo.jsonc`의 `permission`에서 바꿀 수 있습니다.
 
 ### 언어 서버와 파일 인코딩
 
@@ -140,8 +168,8 @@ models.dev 모델 목록 조회, 자동 업데이트, 텔레메트리, LSP·ripg
 | `Administrator rights are required` | 시스템 환경 변수 등록에 필요한 권한을 얻지 못했습니다. 셋업을 다시 실행하고 관리자 권한 확인 창에서 **예**를 누르세요. |
 | `kilo`를 찾을 수 없음 | 새 PATH가 적용되도록 터미널 프로그램을 완전히 닫고 다시 여세요. IDE 안의 터미널이라면 IDE도 다시 시작해야 합니다. |
 | 다른 모델이나 프로바이더가 사용됨 | 셋업 경고에 나온 `kilo.jsonc`·`opencode.json` 등의 파일이 설정을 덮어쓰고 있는지 확인하세요. 셋업 설정을 사용하려면 해당 파일의 `model`·`provider`·`enabled_providers` 항목을 정리하세요. |
-| Word 도구에서 `Microsoft Word is not running` / `is not open in Word` | Word MCP는 Word에 열린 문서에만 동작합니다. 파일의 절대 경로를 알려 주고 열어 달라고 요청하면 `word_live_open`으로 Word에서 엽니다. 직접 열어도 됩니다. |
-| Windows MCP 연결·캡처 오류 | `kilo mcp list`로 상태를 확인하고 Windows 로컬의 로그인된 세션인지 확인하세요. 이미지 전송만 실패하면 모델의 `imageInput` 설정과 API 이미지 지원을 확인하세요. [Windows-MCP 안내](../mcp/windows/README.md) 참고. |
+| Word VBA 도구 오류 | Word에서 문서를 먼저 열어야 합니다. VBA 프로젝트 개체 모델 액세스 설정은 [Word VBA MCP 안내](../mcp/word-vba/README.md)를 참고하세요. |
+| Windows MCP 연결 오류 | `kilo mcp list`로 상태를 확인하고 Windows 로컬의 로그인된 세션인지 확인하세요. [Windows-MCP 안내](../mcp/windows/README.md) 참고. |
 | 빌드센터 도구 오류 | `config\redis\server_IP_mappings.json`과 Redis 인증 변수를 확인하세요. `kilo mcp list`로 MCP 상태를 확인할 수 있습니다. |
 
 ## 등록한 설정 지우기

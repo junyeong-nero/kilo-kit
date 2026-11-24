@@ -1,58 +1,36 @@
 # kilo-kit
 
-폐쇄망 Windows PC에서 사내 AI 모델로 [Kilo CLI](https://github.com/Kilo-Org/kilocode)(`kilo.exe`)를 사용할 수 있도록 필요한 파일을 모은 배포본입니다. ZIP을 내려받아 PC로 옮긴 뒤, `setup.ps1`에서 사내 API 주소와 키를 등록하면 됩니다. 대상 PC에서 인터넷으로 파일을 받거나 Node.js·Python을 따로 설치할 필요는 없습니다.
+폐쇄망 Windows PC에서 사내 AI 모델로 [Kilo CLI](https://github.com/Kilo-Org/kilocode)(`kilo.exe`)를 사용할 수 있도록 필요한 파일을 모은 배포본입니다. 대상 PC에서 인터넷으로 파일을 받거나 Node.js·Python을 따로 설치할 필요는 없습니다.
 
-> OpenCode 전환을 철회하고 Kilo CLI 7.8.18로 복구했습니다. v0.2.0·v0.2.1은 OpenCode 배포본이므로 복구할 때는 새 `kilo-kit-win-x64.zip`을 사용하세요. 기존 OpenCode 설정·DB는 삭제하지 않습니다.
+## 설치
 
-## 포함된 도구
+**[최신 배포 ZIP 다운로드](https://github.com/junyeong-nero/kilo-kit/releases/latest/download/kilo-kit-win-x64.zip)** — GitHub의 **Download ZIP**·**Source code (zip)**은 소스 코드만 담고 있어 실행할 수 없습니다.
 
-- **Kilo CLI 7.8.18** — `bin\kilo\`에 실행 파일과 실행에 필요한 리소스가 들어 있습니다.
-- **빌드센터 MCP** — 빌드센터 Redis에서 프로젝트·모듈·담당자별 빌드 및 시험 결과와 로그를 조회합니다. 전용 Python 런타임도 함께 제공합니다. 자세한 내용은 [빌드센터 MCP 안내](mcp/build-center/README.md)를 참고하세요.
-- **인코딩 보존 MCP** — CP949·EUC-KR·UTF-16·BOM 파일의 인코딩과 줄바꿈을 그대로 유지하면서 읽고 고칩니다. 동봉 Python만 사용합니다. [인코딩 보존 MCP 안내](mcp/encoding/README.md)를 참고하세요.
-- **Word MCP** — [word-mcp-live](https://github.com/ykarapazar/word-mcp-live) 1.6.21. Word에 열린 문서만 화면에서 바로 읽고 편집합니다(Word 필요). 열려 있지 않으면 Word에서 열어 줍니다. 닫힌 `.docx` 파일을 직접 고치는 도구는 끕니다. 자세한 내용은 [Word MCP 안내](mcp/word/README.md)를 참고하세요.
-- **Windows-MCP 0.8.5** — Windows 앱의 UI 조회·클릭·입력·스크린샷을 제공합니다. 기존 Python 3.13과 호환되는 버전으로, 패키지를 별도로 동봉합니다. 캡처·조작은 모두 승인을 요청합니다. [Windows-MCP 안내](mcp/windows/README.md)를 참고하세요.
-- **rg(ripgrep) 15.2.0, fd 10.5.0** — 내용 검색과 파일 찾기에 사용하는 도구로, `bin\`에 들어 있습니다.
-
-확장, Edge MCP, 언어 서버(LSP)는 포함하지 않습니다. OpenCode 전용 인코딩 custom tools·npm 의존성·DB 분리 진입점도 제거했습니다. CP949/UTF-16 보존은 위의 인코딩 보존 MCP가 대신 맡습니다.
-
-## 시작하기
-
-**[최신 배포 ZIP 다운로드](https://github.com/junyeong-nero/kilo-kit/releases/latest/download/kilo-kit-win-x64.zip)**
-
-[Releases 페이지](https://github.com/junyeong-nero/kilo-kit/releases)에서도 받을 수 있습니다. GitHub의 **Download ZIP**이나 **Source code (zip)**은 소스 코드만 담고 있어 바로 실행할 수 없습니다. 반드시 **kilo-kit-win-x64.zip**을 받아 주세요.
-
-1. ZIP을 폐쇄망 PC로 옮기고 원하는 위치에 압축을 풉니다. 아래는 `D:\kilo-kit`에 푼 경우입니다. 기존 OpenCode 폴더에는 덮어쓰지 말고 별도 폴더에 설치하세요. 기존 Kilo 폴더를 재사용한다면 먼저 백업하세요.
-2. PowerShell에서 다음 명령을 실행합니다. 관리자 권한 확인 창이 뜨면 **예**를 누릅니다.
+1. ZIP을 폐쇄망 PC로 옮겨 원하는 폴더에 압축을 풉니다. 압축을 푼 폴더가 그대로 설치 위치가 되며, 나중에 옮기면 `setup.ps1`을 다시 실행해야 합니다.
+2. PowerShell에서 실행합니다. 관리자 권한 확인 창이 뜨면 **예**를 누릅니다.
    ```powershell
-   cd D:\kilo-kit
+   cd <압축을 푼 폴더>   # 예: cd C:\tools\kilo-kit
    Set-ExecutionPolicy -Scope Process Bypass -Force
    .\setup.ps1
    ```
-3. 안내에 따라 사내 API 주소(예: `http://10.0.0.1:8000/v1`)와 API 키를 입력합니다. 빌드센터 인증 정보는 묻지 않습니다. 모델이 여러 개면 기본으로 사용할 모델을 선택합니다.
-4. 설정이 끝나면 터미널을 완전히 닫았다가 다시 엽니다. 이제 어느 폴더에서든 `kilo`를 실행할 수 있습니다.
+3. 사내 API 주소(예: `http://10.0.0.1:8000/v1`)와 API 키를 입력하고, 모델이 여러 개면 기본 모델을 고릅니다.
+4. 터미널을 완전히 닫았다가 다시 열면 어느 폴더에서든 `kilo`를 실행할 수 있습니다.
 
-Qwen3.5-397B는 셋업에서 이미지 입력을 지원하도록 등록합니다. Kilo 입력창에서 `Ctrl+V`로 클립보드 이미지를 붙여넣을 수 있으며, 사내 API 서버도 이미지 요청을 지원해야 합니다.
+셋업 옵션, 설정 파일 위치, 이미지 입력, 문제 해결은 [설치와 설정](docs/installation.md)을 참고하세요.
 
-이미지 입력 설정, 셋업 옵션이나 문제 해결 방법은 [설치와 설정](docs/installation.md)을 참고하세요.
+## MCP
 
-## setup.ps1이 설정하는 것
+셋업이 다음 MCP를 Kilo에 자동 등록합니다. 모두 동봉된 Python으로 실행됩니다.
 
-셋업은 사내 API에서 모델 목록을 가져오고, Kilo 설정과 시스템 환경 변수를 등록합니다. API 키도 시스템 변수에 저장하므로 관리자 권한이 필요합니다.
-
-| 항목 | 설정 내용 |
+| MCP | 기능 |
 |---|---|
-| 모델 프로바이더 | 입력한 주소의 `/models`에서 모델 목록과 컨텍스트 크기를 읽어 `config\models.json`을 만듭니다. 모델이 여러 개면 기본 모델을 선택할 수 있습니다. |
-| Kilo 설정 | `%USERPROFILE%\.config\kilo\`에 `kilo.json`과 도구 사용 규칙인 `AGENTS.md`를 설치합니다. `kilo.json`에는 프로바이더·모델·빌드센터 MCP·인코딩 보존 MCP·Word MCP·Windows-MCP·권한·오프라인 설정이 들어갑니다. 기존 파일은 `.bak`으로 백업하고, 개인 설정용 `kilo.jsonc`는 덮어쓰지 않습니다. |
-| ripgrep | Kilo가 인터넷에서 다운로드하지 않도록, 동봉된 rg를 `%USERPROFILE%\.cache\kilo\bin\rg.exe`에도 복사합니다. |
-| 시스템 PATH | 어느 폴더에서든 `kilo`, `rg`, `fd`를 실행할 수 있도록 `bin\kilo`와 `bin`을 등록합니다. |
-| 시스템 변수 | API 키(`CORP_LLM_API_KEY`), 실행 옵션으로 지정한 경우에만 빌드센터 Redis 인증 정보(`REDISCLI_AUTH`, `HSC_REDIS_USERNAME`), 배포 폴더 경로(`KILO_KIT_HOME`)를 등록합니다. |
+| [빌드센터](mcp/build-center/README.md) | 빌드센터 Redis에서 프로젝트·모듈·담당자별 빌드·시험 결과와 로그를 조회합니다. |
+| [인코딩 보존](mcp/encoding/README.md) | CP949·EUC-KR·UTF-16·BOM 파일을 인코딩과 줄바꿈을 유지한 채 읽고 고칩니다. |
+| [Word VBA](mcp/word-vba/README.md) | Word에 열어 둔 문서에 VBA를 실행해 읽기·검색·편집합니다(Word 필요). 실행은 승인 후 합니다. |
+| [Windows](mcp/windows/README.md) | Windows 앱의 UI 조회·클릭·입력을 제공합니다. 모든 도구가 승인을 요청합니다. |
 
-외부 통신을 끄기 위해 `KILO_DISABLE_AUTOUPDATE`, `KILO_DISABLE_MODELS_FETCH`, `KILO_DISABLE_LSP_DOWNLOAD`, `KILO_DISABLE_SHARE`, `KILO_DISABLE_SESSION_INGEST`, `KILO_TELEMETRY_LEVEL=off`도 설정합니다. 모델을 사용하려면 사내 API에는 연결할 수 있어야 합니다.
+## 더 보기
 
-## 배포본을 관리한다면
-
-GitHub Actions(`.github/workflows/offline.yml`)가 [고정된 버전과 해시](config/offline-artifacts.lock.json)를 기준으로 Kilo·Python·rg·fd를 받고, [빌드센터 MCP](config/redis/requirements.lock)·[Word MCP](config/word/requirements.lock)·[Windows-MCP](config/windows/requirements.lock)의 lock 파일에 지정된 Python 패키지를 설치해 ZIP을 만듭니다. `v*` 태그를 푸시하면 Releases에 게시합니다.
-
-- Kilo 설정 원본: [config/kilo.template.json](config/kilo.template.json)
-- 모델에 전달하는 도구 사용 규칙: [config/AGENTS.md](config/AGENTS.md)
+- [설치와 설정](docs/installation.md) — 셋업이 바꾸는 항목, 옵션, 문제 해결, OpenCode에서 복구
+- [배포본 관리](docs/release.md) — GitHub Actions 패키징, 고정 버전, 설정 원본
 - [구성요소 버전과 라이선스](third_party/README.md)

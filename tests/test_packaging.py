@@ -17,12 +17,12 @@ class PackagingTests(unittest.TestCase):
     def test_kilo_bundle_and_runtime_cache(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            for name in ("bin", "runtime/python", "runtime/word-mcp", "runtime/windows-mcp", "mcp", "config", "scripts", "docs", "third_party"):
+            for name in ("bin", "runtime/python", "mcp", "config", "scripts", "docs", "third_party"):
                 (root / name).mkdir(parents=True)
                 (root / name / "fixture.txt").write_text("fixture")
             for name in ("setup.ps1", "README.md"):
                 (root / name).write_text("fixture")
-            module = "runtime/windows-mcp/beartype/_util/cache/__init__.py"
+            module = "runtime/python/Lib/site-packages/beartype/_util/cache/__init__.py"
             for name in ("bin/kilo/kilo.exe", module, "config/redis/cache/private.json", "config/models.json", "config/redis/owners.json", "config/redis/server_IP_mappings.json", "config/models.json.bak"):
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -46,7 +46,7 @@ class PackagingTests(unittest.TestCase):
         self.assertIn("kilo", lock["artifacts"])
         self.assertNotIn("opencode", lock["artifacts"])
         template = json.loads((ROOT / "config/kilo.template.json").read_text())
-        self.assertEqual(set(template["mcp"]), {"build_center", "encoding", "word", "windows"})
+        self.assertEqual(set(template["mcp"]), {"build_center", "encoding", "word_vba", "windows"})
         self.assertNotIn("plugin", template)
         self.assertFalse((ROOT / "config/opencode.cmd").exists())
         self.assertFalse((ROOT / "tools/encoding/package.json").exists())

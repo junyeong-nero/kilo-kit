@@ -223,11 +223,20 @@ def write_file(root, file_path, content):
 
 
 def create_server(root):
-    from mcp.server.fastmcp import FastMCP  # Imported here so the file logic is testable without mcp installed.
+    # Imported here so the file logic is testable without mcp installed.
+    from mcp.server.mcpserver import MCPServer
+    from mcp.server.mcpserver.exceptions import ToolError
 
-    server = FastMCP("encoding")
+    server = MCPServer("encoding")
     root = Path(root).resolve()
     readonly = {"readOnlyHint": True, "destructiveHint": False}
+
+    def call(function, *args):
+        try:
+            return function(*args)
+        except (ValueError, OSError) as error:
+            # MCP SDK 2 shows the model the text of a ToolError only
+            raise ToolError(str(error)) from None
 
     @server.tool(annotations=readonly)
     def read(file_path: str, offset: int = 1, limit: int = 2000) -> str:
@@ -236,7 +245,7 @@ def create_server(root):
         Use this instead of the built-in read for source files: it shows Korean in CP949/UTF-16 files correctly.
         Lines are prefixed with 'N: '; never copy that prefix into old_string. Directories are listed.
         """
-        return read_file(root, file_path, offset, limit)
+        return call(read_file, root, file_path, offset, limit)
 
     @server.tool()
     def edit(file_path: str, old_string: str, new_string: str, replace_all: bool = False) -> str:
@@ -245,7 +254,7 @@ def create_server(root):
         old_string must match exactly once unless replace_all is true. Characters the file's encoding
         cannot store (for example emoji in CP949) are rejected instead of being replaced with '?'.
         """
-        return edit_file(root, file_path, old_string, new_string, replace_all)
+        return call(edit_file, root, file_path, old_string, new_string, replace_all)
 
     @server.tool()
     def write(file_path: str, content: str) -> str:
@@ -253,7 +262,7 @@ def create_server(root):
 
         New files use the matching encoding-rules.json rule, otherwise UTF-8 without BOM.
         """
-        return write_file(root, file_path, content)
+        return call(write_file, root, file_path, content)
 
     return server
 

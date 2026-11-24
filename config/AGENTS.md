@@ -30,5 +30,5 @@
 
 - **encoding_**: 프로젝트 안 텍스트 파일은 이 도구로 읽고 쓴다(인코딩·줄바꿈 보존). 내장 read·edit·write는 쓸 수 없을 때만 쓴다.
 - **build_center_**: `list_projects` → `find_modules` → `get_results` → `get_log` 순서로 조회한다. state `"4"`=성공, `"5"`=실패.
-- **word_**: Word에 열린 문서만 다룬다. 큰 문서는 `word_live_find_text`로 찾고 `word_live_get_page_text`로 읽는다.
+- **word_vba_**: Word에 열린 문서만 다룬다. `list_documents`로 대상을 확인하고 `run_vba`에는 `Function PiMain() As String`이 필요한 것만 돌려주게 쓴다. 잘린 결과는 `read_output`으로 이어 읽는다.
 - **windows_**: UI 테스트용이다. 민감정보가 담긴 창은 캡처하지 않고, 저장·삭제·전송은 승인 없이 하지 않는다.

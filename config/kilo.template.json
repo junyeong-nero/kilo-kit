@@ -43,23 +43,10 @@
     "build_center_*": "allow",
     "encoding_*": "ask",
     "encoding_read": "allow",
-    "word_*": "ask",
     "windows_*": "ask",
-    "word_word_screen_capture": "allow",
-    "word_word_live_get_text": "allow",
-    "word_word_live_take_snapshot": "allow",
-    "word_word_live_get_diff": "allow",
-    "word_word_live_snapshot_status": "allow",
-    "word_word_live_get_paragraph_format": "allow",
-    "word_word_live_get_info": "allow",
-    "word_word_live_list_open": "allow",
-    "word_word_live_find_text": "allow",
-    "word_word_live_get_comments": "allow",
-    "word_word_live_list_revisions": "allow",
-    "word_word_live_get_page_text": "allow",
-    "word_word_live_get_undo_history": "allow",
-    "word_word_live_list_cross_reference_items": "allow",
-    "word_word_live_diagnose_layout": "allow"
+    "word_vba_*": "ask",
+    "word_vba_list_documents": "allow",
+    "word_vba_read_output": "allow"
   },
   "mcp": {
     "build_center": {
@@ -104,7 +91,7 @@
       "enabled": true,
       "timeout": 120000
     },
-    "word": {
+    "word_vba": {
       "type": "local",
       "command": [
         "{bundle}\\runtime\\python\\python.exe",
@@ -113,10 +100,10 @@
         "utf8",
         "-B",
         "-m",
-        "word_mcp"
+        "word_vba"
       ],
       "enabled": true,
-      "timeout": 120000
+      "timeout": 600000
     }
   }
 }
