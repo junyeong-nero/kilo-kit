@@ -4,7 +4,7 @@
 
 ## 포함된 도구
 
-- **Kilo CLI 7.8.18** — `bin\kilo\`에 실행 파일과 실행에 필요한 리소스가 들어 있습니다.
+- **Kilo CLI 7.8.32** — `bin\kilo\`에 실행 파일과 실행에 필요한 리소스가 들어 있습니다.
 - **빌드센터 MCP** — 빌드센터 Redis에서 프로젝트·모듈·담당자별 빌드 및 시험 결과와 로그를 조회합니다. 전용 Python 런타임도 함께 제공합니다. [빌드센터 MCP 안내](../mcp/build-center/README.md)
 - **인코딩 보존 MCP** — CP949·EUC-KR·UTF-16·BOM 파일의 인코딩과 줄바꿈을 그대로 유지하면서 읽고 고칩니다. 동봉 Python만 사용합니다. [인코딩 보존 MCP 안내](../mcp/encoding/README.md)
 - **Word VBA MCP** — Word에 열어 둔 문서(DRM 문서 포함)에 에이전트가 쓴 VBA를 실행해 읽기·검색·편집합니다(Word 필요). Word 보안 센터의 "VBA 프로젝트 개체 모델에 안전하게 액세스" 설정이 필요합니다. [Word VBA MCP 안내](../mcp/word-vba/README.md)

@@ -4,7 +4,7 @@
 
 | 배포 경로 | 버전 | 출처 | 라이선스 |
 |---|---|---|---|
-| `bin/kilo/` | Kilo CLI 7.8.18 Windows x64 (공식 ZIP 전체: `kilo.exe`, tree-sitter WASM, console 리소스) | [Kilo-Org/kilocode release](https://github.com/Kilo-Org/kilocode/releases/tag/v7.8.18) | MIT ([`kilo/LICENSE`](kilo/LICENSE)) |
+| `bin/kilo/` | Kilo CLI 7.8.32 Windows x64 (공식 ZIP 전체: `kilo.exe`, tree-sitter WASM, console 리소스) | [Kilo-Org/kilocode release](https://github.com/Kilo-Org/kilocode/releases/tag/v7.8.32) | MIT ([`kilo/LICENSE`](kilo/LICENSE)) |
 | `runtime/python/` | CPython 3.13.16 embeddable + mcp 2.3.0·redis·tzdata·pywin32·windows-mcp 0.8.5 등 | [python.org](https://www.python.org/ftp/python/3.13.16/), [CursorTouch/Windows-MCP](https://github.com/CursorTouch/Windows-MCP) | PSF·MIT 및 각 패키지 라이선스 ([`python/NOTICE.md`](python/NOTICE.md)) |
 | `bin/rg.exe` | ripgrep 15.2.0 | [BurntSushi/ripgrep](https://github.com/BurntSushi/ripgrep/releases/tag/15.2.0) | MIT / Unlicense ([`ripgrep/`](ripgrep/)) |
 | `bin/fd.exe` | fd 10.5.0 | [sharkdp/fd](https://github.com/sharkdp/fd/releases/tag/v10.5.0) | MIT / Apache-2.0 ([`fd/`](fd/)) |

@@ -21,3 +21,9 @@
 - OpenCode 전환은 철회했다. 기존 OpenCode 설정·DB·환경 변수를 삭제하거나 이력을 Kilo로 자동 이동하지 않는다. OpenCode 전용 인코딩 custom tools·npm 의존성·DB 분리 진입점은 배포하지 않는다.
 - `apiKeyEnv`에 잘못 넣은 `sk-...` 키는 시스템 등록 성공 후 변수 이름으로 정정한다. 원문 키를 오류·JSON 백업에 복제하지 않는다. 패키징은 라이브러리의 실제 `cache` 코드 폴더를 보존하고 `config/redis/cache`만 제외한다.
 - 배포 ZIP에 실제 API 키, `config/models.json`, 빌드센터 실제 매핑(`server_IP_mappings.json`, `owners.json`), 세션·캐시를 포함하지 않는다.
+
+## 릴리스할 때
+
+- 릴리스(`v*` 태그)마다 동봉 Kilo CLI를 최신 정식 버전(프릴리스 제외)으로 올린다. 대상은 `config/offline-artifacts.lock.json`의 `kilo`(URL·SHA-256)와 docs·third_party의 버전 표기다.
+- 올리기 전에 각 릴리스 노트의 breaking change(설정 스키마, `KILO_*` 환경 변수, `bin\kilo\` 필수 파일)를 확인하고, 영향이 있으면 맞춰 고치거나 올리지 않은 이유를 보고한다.
+- 올린 버전은 커밋 메시지와 보고에 `이전 → 새 버전`으로 적고, `main` CI가 통과한 뒤에 태그를 push한다.
